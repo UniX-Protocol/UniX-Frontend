@@ -10,7 +10,24 @@ export type ScaffoldConfig = {
 
 const scaffoldConfig = {
   // The networks on which your DApp is live
-  targetNetworks: [chains.hardhat],
+  // targetNetworks: [chains.hardhat],
+  targetNetworks: [
+    {
+      id: 202407311228,
+      name: "unix-fork-mainnet",
+      nativeCurrency: {
+        name: "Ethereum",
+        symbol: "ETH",
+        decimals: 18,
+      },
+      rpcUrls: {
+        default: {
+          http: ["https://virtual.mainnet.rpc.tenderly.co/fb2dcf47-c2cd-4368-8a8c-e1ed155f5c34"],
+          webSocket: undefined,
+        },
+      },
+    },
+  ],
 
   // The interval at which your front-end polls the RPC servers for new data
   // it has no effect if you only target the local network (default is 4000)
