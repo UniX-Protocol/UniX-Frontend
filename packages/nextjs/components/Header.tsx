@@ -28,6 +28,10 @@ export const menuLinks: HeaderMenuLink[] = [
     label: "Liquidity",
     href: "/liquidity",
   },
+  {
+    label: "Rewards",
+    href: "/rewards",
+  },
 ];
 
 export const HeaderMenuLinks = () => {

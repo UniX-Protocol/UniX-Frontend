@@ -19,6 +19,8 @@
   "dependencies": {
     "@openzeppelin/contracts": "~4.8.1",
     "@typechain/ethers-v6": "~0.5.1",
+    "@uniswap/lib": "^4.0.1-alpha",
+    "@uniswap/v2-core": "1.0.0",
     "dotenv": "~16.0.3",
     "envfile": "~6.18.0",
     "qrcode": "~1.5.1"
