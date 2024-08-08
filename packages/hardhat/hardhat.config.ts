@@ -198,11 +198,20 @@ const config: HardhatUserConfig = {
   networks: {
     // View the networks that are pre-configured.
     // If the network you are looking for is not here you can add new network settings
+    // hardhat: {
+    //   forking: {
+    //     url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
+    //     enabled: process.env.MAINNET_FORKING_ENABLED === "true",
+    //   },
+    // },
     hardhat: {
       forking: {
-        url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
-        enabled: process.env.MAINNET_FORKING_ENABLED === "true",
+        url: "https://virtual.mainnet.rpc.tenderly.co/fb2dcf47-c2cd-4368-8a8c-e1ed155f5c34",
       },
+    },
+    mainnet_forking: {
+      url: `https://virtual.mainnet.rpc.tenderly.co/fb2dcf47-c2cd-4368-8a8c-e1ed155f5c34`,
+      accounts: [deployerPrivateKey],
     },
     mainnet: {
       url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,

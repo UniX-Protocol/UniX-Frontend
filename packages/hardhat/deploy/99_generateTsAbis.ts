@@ -37,18 +37,29 @@ function getContractNames(path: string) {
 function getActualSourcesForContract(sources: Record<string, any>, contractName: string) {
   for (const sourcePath of Object.keys(sources)) {
     const sourceName = sourcePath.split("/").pop()?.split(".sol")[0];
+    console.log("sourcePath", sourcePath);
+    console.log("sourceName", sourceName);
+    console.log(`${sourceName} === ${contractName}`, sourceName === contractName);
     if (sourceName === contractName) {
+      // console.log("sourcePath",sourcePath)
       const contractContent = sources[sourcePath].content as string;
+      console.log("xxxxx0", sources[sourcePath]);
+      console.log("xxxxx1", contractContent);
       const regex = /contract\s+(\w+)\s+is\s+([^{}]+)\{/;
-      const match = contractContent.match(regex);
+      try {
+        const match = contractContent.match(regex);
 
-      if (match) {
-        const inheritancePart = match[2];
-        // Split the inherited contracts by commas to get the list of inherited contracts
-        const inheritedContracts = inheritancePart.split(",").map(contract => `${contract.trim()}.sol`);
+        if (match) {
+          const inheritancePart = match[2];
+          // Split the inherited contracts by commas to get the list of inherited contracts
+          const inheritedContracts = inheritancePart.split(",").map(contract => `${contract.trim()}.sol`);
 
-        return inheritedContracts;
+          return inheritedContracts;
+        }
+      } catch (error) {
+        return [];
       }
+
       return [];
     }
   }
