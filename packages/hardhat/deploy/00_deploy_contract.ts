@@ -68,6 +68,12 @@ const deployYourContract: DeployFunction = async function (hre: HardhatRuntimeEn
     args: [UniswapV2Factory, WETH],
     log: true,
   });
+
+  await deploy("UniXHelper", {
+    from: deployer,
+    args: [],
+    log: true,
+  });
 };
 
 export default deployYourContract;

@@ -348,6 +348,90 @@ const deployedContracts = {
       ],
       inheritedFunctions: {},
     },
+    UniXHelper: {
+      address: "0x015E718425221848Cc2E038FAbd2b4b211b31E90",
+      abi: [
+        {
+          inputs: [],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "token",
+              type: "address",
+            },
+            {
+              internalType: "contract IUniXBank",
+              name: "unixBank",
+              type: "address",
+            },
+          ],
+          name: "getUserInterest",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "interest",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "token",
+              type: "address",
+            },
+            {
+              internalType: "contract IAaveV3RewardController",
+              name: "rewardController",
+              type: "address",
+            },
+            {
+              internalType: "contract IAaveV3Pool",
+              name: "pool",
+              type: "address",
+            },
+            {
+              internalType: "contract IUniXBank",
+              name: "unixBank",
+              type: "address",
+            },
+          ],
+          name: "getUserRewards",
+          outputs: [
+            {
+              internalType: "address[]",
+              name: "rewardsList",
+              type: "address[]",
+            },
+            {
+              internalType: "uint256[]",
+              name: "rewards",
+              type: "uint256[]",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+      ],
+      inheritedFunctions: {},
+    },
     UniswapV2Factory: {
       address: "0x7578914729f0C40382ab86D730ff45EC18eda814",
       abi: [
