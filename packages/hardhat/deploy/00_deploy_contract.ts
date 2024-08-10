@@ -47,7 +47,7 @@ const deployYourContract: DeployFunction = async function (hre: HardhatRuntimeEn
       WETH,
       contractAddress.AaveEthGateway,
       contractAddress.RewardController,
-      [WETH, "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8", "0x29f2D40B0605204364af54EC677bD022dA425d03"],
+      [WETH, contractAddress.USDC, contractAddress.WBTC],
     ],
     log: true,
   });

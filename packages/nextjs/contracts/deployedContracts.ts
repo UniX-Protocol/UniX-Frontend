@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   202407311228: {
     UniXBank: {
-      address: "0x0505d6571613091A733F1c922eEC3d317Bf91e32",
+      address: "0xc81946D8Cc1155AEf9296E7fFF9bFC1E8426DF24",
       abi: [
         {
           inputs: [
@@ -349,7 +349,7 @@ const deployedContracts = {
       inheritedFunctions: {},
     },
     UniXHelper: {
-      address: "0x7aC8B5b4598614206180c8F51D4C8a92BdF41069",
+      address: "0xD399Eb8EAe3B5addFB59Affa96Cff425D9103c09",
       abi: [
         {
           inputs: [],
@@ -433,7 +433,7 @@ const deployedContracts = {
       inheritedFunctions: {},
     },
     UniswapV2Factory: {
-      address: "0xBFCf8fda1A5c523FEE5397F32f433DaFc001544b",
+      address: "0x8D365428D95180149bF62fa2eb52A7caD6d1931B",
       abi: [
         {
           inputs: [
@@ -659,7 +659,7 @@ const deployedContracts = {
       },
     },
     UniswapV2Router02: {
-      address: "0x7c1aeb1A96D5edCaCdAd925e48253b71B771461C",
+      address: "0x3A2Ccd8E9e9Feff0000d6Af31B5DEF49A82f7575",
       abi: [
         {
           inputs: [
@@ -1635,35 +1635,53 @@ const deployedContracts = {
       ],
       inheritedFunctions: {
         WETH: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
-        addLiquidity: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
-        addLiquidityETH: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
+        addLiquidity:
+          "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
+        addLiquidityETH:
+          "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
         factory: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
         getAmountIn: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
-        getAmountOut: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
-        getAmountsIn: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
-        getAmountsOut: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
+        getAmountOut:
+          "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
+        getAmountsIn:
+          "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
+        getAmountsOut:
+          "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
         quote: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
-        removeLiquidity: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
-        removeLiquidityETH: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
-        removeLiquidityETHSupportingFeeOnTransferTokens: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
-        removeLiquidityETHWithPermit: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
+        removeLiquidity:
+          "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
+        removeLiquidityETH:
+          "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
+        removeLiquidityETHSupportingFeeOnTransferTokens:
+          "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
+        removeLiquidityETHWithPermit:
+          "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
         removeLiquidityETHWithPermitSupportingFeeOnTransferTokens:
           "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
-        removeLiquidityWithPermit: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
-        swapETHForExactTokens: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
-        swapExactETHForTokens: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
-        swapExactETHForTokensSupportingFeeOnTransferTokens: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
-        swapExactTokensForETH: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
-        swapExactTokensForETHSupportingFeeOnTransferTokens: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
-        swapExactTokensForTokens: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
+        removeLiquidityWithPermit:
+          "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
+        swapETHForExactTokens:
+          "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
+        swapExactETHForTokens:
+          "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
+        swapExactETHForTokensSupportingFeeOnTransferTokens:
+          "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
+        swapExactTokensForETH:
+          "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
+        swapExactTokensForETHSupportingFeeOnTransferTokens:
+          "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
+        swapExactTokensForTokens:
+          "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
         swapExactTokensForTokensSupportingFeeOnTransferTokens:
           "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
-        swapTokensForExactETH: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
-        swapTokensForExactTokens: "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
+        swapTokensForExactETH:
+          "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
+        swapTokensForExactTokens:
+          "contracts/v2-periphery/interfaces/IUniswapV2Router02.sol",
       },
     },
     WETH9: {
-      address: "0x57C14f15c22B5C5c2b9242CED0272401C66A30F1",
+      address: "0x168001543E54b2ff620c63C0FE5ea6316F78555A",
       abi: [
         {
           anonymous: false,

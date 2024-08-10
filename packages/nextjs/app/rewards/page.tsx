@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import deployedContracts from "../../contracts/deployedContracts";
 import externalContracts from "../../contracts/externalContracts";
 import {
+  useDeployedContractInfo,
+  useScaffoldContract,
   useScaffoldReadContract,
   useScaffoldWriteContract,
   useTargetNetwork,
@@ -23,11 +25,17 @@ const Rewards: NextPage = () => {
   const { targetNetwork } = useTargetNetwork();
   // const unixHelperContract = getAllContracts()["UnixHelper"]
   const { address } = useAccount();
-  // useSimulateContract({
-  //   abi:deployedContracts[202407311228].UniXHelper.abi,
-  //   functionName:"getUserInterest",
-  //   args:[address,usdc.]
-  // })
+  const {data:uniXHelperInfo} = useDeployedContractInfo("UniXHelper")
+  const {data:usdcInfo} = useDeployedContractInfo("USDC")
+  const {data:unixBankInfo} = useDeployedContractInfo("UniXBank")
+  const {data:routerInfo} = useDeployedContractInfo("UniswapV2Router02")
+  const {data:userInterest,isLoading,error,isSuccess} = useSimulateContract({
+    abi:uniXHelperInfo?.abi,
+    address:uniXHelperInfo?.address,
+    functionName:"getUserInterest",
+    args:[address??"",usdcInfo?.address,unixBankInfo?.address]
+  })
+
 
   const uniswapV2Router02 = useScaffoldWriteContract("UniswapV2Router02");
   const { data } = useScaffoldReadContract({
@@ -39,12 +47,20 @@ const Rewards: NextPage = () => {
   const { data: aaa } = useScaffoldReadContract({
     contractName: "USDC",
     functionName: "allowance",
-    args: [address, "0x7c1aeb1A96D5edCaCdAd925e48253b71B771461C"],
+    args: [address, routerInfo?.address],
   });
 
   useEffect(() => {
     console.log("======", data?.toString());
   }, [data]);
+
+  useEffect(() => {
+    console.log("xxxxxx", userInterest?.toString());
+  }, [userInterest]);
+
+  useEffect(() => {
+    console.log("isLoadingxxxxxx", error?.message);
+  }, [isLoading]);
 
   // const [balance,setBalance] = useState(0)
 
@@ -54,10 +70,11 @@ const Rewards: NextPage = () => {
         onClick={async () => {
           await usdc.writeContractAsync({
             functionName: "approve",
-            args: ["0x7c1aeb1A96D5edCaCdAd925e48253b71B771461C", BigInt("1000000000000000000")],
+            args: [routerInfo?.address, BigInt("1000000000000000000")],
           });
         }}
       >
+        xxx{userInterest?.result}xxx
         ====={aaa?.toString()}===== approve
       </button>
 
@@ -66,7 +83,7 @@ const Rewards: NextPage = () => {
           await uniswapV2Router02.writeContractAsync({
             functionName: "addLiquidityETH",
             args: [
-              externalContracts[202407311228].USDC.address,
+              usdcInfo?.address,
               BigInt(100000000000),
               BigInt(0),
               BigInt(0),

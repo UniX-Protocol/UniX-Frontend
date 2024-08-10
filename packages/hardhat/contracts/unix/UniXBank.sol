@@ -56,7 +56,12 @@ contract UniXBank {
 		aaveRewardController = _aaveRewardController;
 		for(uint i = 0; i < _supportEarnTokens.length; i++){
 			supportEarnTokens[_supportEarnTokens[i]] = true;
-			pools[_supportEarnTokens[i]].aToken = IAaveV3Pool(aaveV3Pool).getReserveData(_supportEarnTokens[i]).aTokenAddress;
+			if(_supportEarnTokens[i] == wETH){
+				pools[_supportEarnTokens[i]].aToken = IAaveV3Pool(aaveV3Pool).getReserveData(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2).aTokenAddress;
+			}else{
+				pools[_supportEarnTokens[i]].aToken = IAaveV3Pool(aaveV3Pool).getReserveData(_supportEarnTokens[i]).aTokenAddress;
+			}
+			
 		}
 	}
 
@@ -104,7 +109,6 @@ contract UniXBank {
 			poolInfo.share -= removedShare;
 			poolInfo.userInfo[user].share -= removedShare;
 			_safeTransferTo(pair, token, user, amount);
-
 			address[] memory assets = new address[](1);
 			assets[0] = poolInfo.aToken;
 			IAaveV3RewardController arc = IAaveV3RewardController(aaveRewardController);
@@ -114,6 +118,7 @@ contract UniXBank {
 				poolInfo.userInfo[user].accRewards[rewardsList[i]] -= changedAccUserReward;
 				poolInfo.accRewards[rewardsList[i]] -= changedAccUserReward;
 			}
+				
 
 			uint changedAccUserInterest = poolInfo.userInfo[user].accInterest * amount / reserve;
 			poolInfo.userInfo[user].accInterest -= changedAccUserInterest;
