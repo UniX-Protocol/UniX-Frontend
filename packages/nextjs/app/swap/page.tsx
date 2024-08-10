@@ -1,17 +1,54 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useEffect, useState } from "react";
 import type { NextPage } from "next";
-import { useAccount } from "wagmi";
-import { BugAntIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { Address, IntegerInput } from "~~/components/scaffold-eth";
+import { useAccount, useReadContract } from "wagmi";
+import { IntegerInput } from "~~/components/scaffold-eth";
+import { useDeployedContractInfo, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import UniswapV2PairABI from "~~/contracts/abis/UniswapV2Pair.json";
+import externalContracts from "~~/contracts/externalContracts";
 
 const Swap: NextPage = () => {
   const { address: connectedAddress } = useAccount();
-  const [txValue, setTxValue] = useState<string | bigint>("");
   const [sellCoin, setSellCoin] = useState<string>("Select coin")
   const [buyCoin, setBuyCoin] = useState<String>("Select coin")
+  const [sellAmount, setSellAmount] = useState<string | bigint>("")
+  const [buyAmount, setBuyAmount] = useState<string | bigint>("")
+  const { data: wethContract } = useDeployedContractInfo("WETH9");
+
+
+  const { data: pair } = useScaffoldReadContract({
+    contractName: "UniswapV2Factory",
+    functionName: "getPair",
+    args: [wethContract?.address, externalContracts[202407311228].USDC.address],
+  });
+
+  const { data: reserves } = useReadContract({
+    abi: UniswapV2PairABI,
+    address: pair,
+    args: [],
+    functionName: 'getReserves',
+  })
+  console.log("reserve result")
+  console.log(reserves)
+
+  function getBuyAmount(amount: string | bigint, coin: string) {
+    if (amount === undefined || coin === undefined ) { return "" }
+    if (coin === "ETH") {
+      return BigInt(1)
+    } else {
+      return BigInt(2)
+    }
+  }
+
+  useEffect(() => {
+    const buy_amount = getBuyAmount(sellAmount, sellCoin)
+    setBuyAmount(buy_amount)
+  }, [sellAmount, sellCoin]);
+
+  const handleSwapAction = async () => {
+    
+  }
 
   return (
     <>
@@ -22,9 +59,9 @@ const Swap: NextPage = () => {
             <div className="join">
               <div className="join-item flex items-center">
                 <IntegerInput
-                  value={txValue}
+                  value={sellAmount}
                   onChange={updatedTxValue => {
-                    setTxValue(updatedTxValue);
+                    setSellAmount(updatedTxValue);
                   }}
                   placeholder="Sell Amount"
                 />
@@ -53,9 +90,9 @@ const Swap: NextPage = () => {
             <div className="join">
               <div className="join-item flex items-center">
                 <IntegerInput
-                  value={txValue}
+                  value={buyAmount}
                   onChange={updatedTxValue => {
-                    setTxValue(updatedTxValue);
+                    setSellAmount(updatedTxValue);
                   }}
                   placeholder="Buy Amount"
                 />
