@@ -7,13 +7,15 @@ import { BugAntIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { Address } from "~~/components/scaffold-eth";
 import { useDeployedContractInfo, useScaffoldReadContract, useScaffoldWriteContract, useTransactor } from "~~/hooks/scaffold-eth";
 import externalContracts from "~~/contracts/externalContracts";
-import { formatEther, formatUnits, parseEther } from "viem";
+import { formatEther, formatUnits, parseEther, parseUnits } from "viem";
 import deployedContracts from "~~/contracts/deployedContracts";
 import UniswapV2PairABI from "~~/contracts/abis/UniswapV2Pair.json";
 import { useState } from "react";
 
 const Liquidity: NextPage = () => {
   const [amount, setAmount] = useState(0);
+  const [ethAmount, setEthAmount] = useState("0");
+  const [usdcAmount, setUsdcAmount] = useState("0");
   const { address: connectedAddress } = useAccount();
   const { data: result, isPending, writeContractAsync } = useWriteContract();
   const { data: routerContract, isLoading: deployedContractLoading } = useDeployedContractInfo("UniswapV2Router02");
@@ -25,13 +27,21 @@ const Liquidity: NextPage = () => {
     args: [connectedAddress, deployedContracts[202407311228].UniswapV2Router02.address],
   });
 
+  // const { data: usdc } = useScaffoldReadContract({
+  //   contractName: "USDC",
+  //   functionName: "balanceOf",
+  //   args: [connectedAddress],
+  // });
+
+  // console.log(usdc, 'usdc')
+
   const { data: pair } = useScaffoldReadContract({
     contractName: "UniswapV2Factory",
     functionName: "getPair",
     args: [wethContract?.address, externalContracts[202407311228].USDC.address],
   });
 
-  console.log(pair, 'pair')
+  // console.log(pair, 'pair')
 
   const { data: position } = useReadContract({
     abi: UniswapV2PairABI,
@@ -109,7 +119,7 @@ const Liquidity: NextPage = () => {
   };
 
   const handleAddLiquidity = async () => {
-    console.log(approvedUSDC)
+    console.log(approvedUSDC, parseUnits(usdcAmount, 6))
     if (approvedUSDC && BigInt(approvedUSDC) > 0) {
       if (writeContractAsync) {
         try {
@@ -118,14 +128,15 @@ const Liquidity: NextPage = () => {
               address: routerContract.address,
               functionName: 'addLiquidityETH',
               abi: routerContract.abi,
-              args: [externalContracts[202407311228].USDC.address, BigInt(100000000000), BigInt(0), BigInt(0), connectedAddress, Math.floor(Date.now() / 1000) + 36000000],
-              value: BigInt(1000000000000000),
+              args: [externalContracts[202407311228].USDC.address, parseUnits(usdcAmount, 6), BigInt(0), BigInt(0), connectedAddress, Math.floor(Date.now() / 1000) + 36000000],
+              value: parseEther(ethAmount),
             });
           await writeTxn(makeWriteWithParams);
 
         } catch (e: any) {
           console.error("⚡️ ~ file: WriteOnlyFunctionForm.tsx:handleWrite ~ error", e);
         }
+        document.getElementById('add').close();
       }
     } else {
       handleApproveUSDC();
@@ -137,6 +148,7 @@ const Liquidity: NextPage = () => {
     if (approvedLP && BigInt(approvedLP as string) > 0) {
       if (writeContractAsync) {
         try {
+          console.log(BigInt(parseInt(position as any) * amount / 100), 'amount')
           const makeWriteWithParams = () =>
             writeContractAsync({
               address: routerContract.address,
@@ -148,6 +160,8 @@ const Liquidity: NextPage = () => {
         } catch (e: any) {
           console.error("⚡️ ~ file: WriteOnlyFunctionForm.tsx:handleWrite ~ error", e);
         }
+        document.getElementById('remove').close();
+
       }
     } else {
       handleApproveLP();
@@ -169,11 +183,11 @@ const Liquidity: NextPage = () => {
               <div className="flex flex-col justify-between items-center h-full">
                 <h1>Add Liquidity</h1>
                 <label className="input input-bordered flex items-center gap-2">
-                  <input type="text" className="grow" placeholder="" />
+                  <input type="text" className="grow" placeholder="" value={ethAmount} onChange={(e) => setEthAmount(e.target.value)} />
                   <span>ETH</span>
                 </label>
                 <label className="input input-bordered flex items-center gap-2">
-                  <input type="text" className="grow" placeholder="" />
+                  <input type="text" className="grow" placeholder="" value={usdcAmount} onChange={(e) => setUsdcAmount(e.target.value)} />
                   <span>USDC</span>
                 </label>
                 <button className="btn w-72 btn-info" onClick={() => handleAddLiquidity()}>Supply</button>
@@ -190,7 +204,7 @@ const Liquidity: NextPage = () => {
               <div className="flex flex-col p-5 justify-around max-h-64">
                 <div className="flex flex-row justify-between py-1"><span>Total Pooled Tokens</span><span>{formatEther(position)}</span></div>
                 <div className="flex flex-row justify-between py-1"><span>Pooled ETH</span><span>{formatEther((reserves as any)[0]?.toString())}</span></div>
-                <div className="flex flex-row justify-between py-1"><span>Pooled USDC</span><span>{formatUnits((reserves as any)[1]?.toString(), 8)}</span></div>
+                <div className="flex flex-row justify-between py-1"><span>Pooled USDC</span><span>{formatUnits((reserves as any)[1]?.toString(), 6)}</span></div>
                 <div className="flex flex-row justify-between py-1"><span>Your Pool Share</span><span>{(parseFloat(position) / parseFloat(totalSupply as string) * 100).toFixed(4)}%</span></div>
               </div>
 
@@ -212,7 +226,7 @@ const Liquidity: NextPage = () => {
                         <span>ETH</span> <span>{formatEther(BigInt((parseInt((reserves as any)[0]) * amount / 100).toString()))}</span>
                       </label>
                       <label className="flex items-center flex-row justify-between">
-                        <span>USDC</span> <span>{formatUnits(BigInt((parseInt((reserves as any)[0]) * amount / 100).toString()), 8)}</span>
+                        <span>USDC</span> <span>{formatUnits(BigInt((parseInt((reserves as any)[0]) * amount / 100).toString()), 6)}</span>
                       </label>
                     </div>
                     <button className="btn btn-error w-full" onClick={() => handleRemoveLiquidity()}>Remove</button>
