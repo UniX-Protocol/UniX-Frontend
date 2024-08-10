@@ -199,6 +199,7 @@ describe("Unix test",()=>{
 
 	describe("removeLiquidityETH",()=>{
 		it("remove liquidity and withdraw from aave v3",async ()=>{
+			console.log("=======================:")
 			const {uniswapV2Router,owner,uniswapFactory,weth} = await loadFixture(addLiquidityETHFixture)
 			const pairAddr = await uniswapFactory.getPair(contractAddress.USDC,weth.getAddress())
 			const pair = await hethers.getContractAt("AllocateErc20",pairAddr)
@@ -208,10 +209,10 @@ describe("Unix test",()=>{
 			const amountBMin = 0
 			const to = owner.address
 			console.log("liquidity:",liquidity)
-			const increaseTo = Math.floor((Date.now()+ 86400 * 1000) / 1000) 
-			await time.increaseTo(increaseTo)
-			const deadline = Math.floor(increaseTo + 60).toString()
-			const tx = await uniswapV2Router.removeLiquidityETH(contractAddress.USDC,liquidity,amountAMin,amountBMin,to,deadline)
+			// const increaseTo = Math.floor((Date.now()+ 86400 * 1) / 1000) 
+			// await time.increaseTo(increaseTo)
+	
+			const tx = await uniswapV2Router.removeLiquidityETH(contractAddress.USDC,liquidity,amountAMin,amountBMin,to,deadline())
 			await tx.wait()
 		})
 	})
@@ -269,7 +270,7 @@ describe("Unix test",()=>{
 })
 
 function deadline() {
-	return Math.floor(Date.now()/1000 + 60).toString()
+	return Math.floor(Date.now()/1000 + 86400 * 100000000000).toString()
 }
 
 function numberString(numStr: string): string {

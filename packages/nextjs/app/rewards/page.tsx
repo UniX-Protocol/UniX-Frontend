@@ -55,7 +55,7 @@ const Rewards: NextPage = () => {
   }, [data]);
 
   useEffect(() => {
-    console.log("xxxxxx", userInterest?.toString());
+    console.log("xxxxxx", userInterest);
   }, [userInterest]);
 
   useEffect(() => {

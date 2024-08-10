@@ -304,7 +304,12 @@ contract UniXBank {
 		_updateShare(user, token, 0);
 		PoolInfo storage poolInfo = pools[token];
 		uint totalInterest = poolInfo.accInterest + interest;
-		uint claimedInterest = poolInfo.userInfo[user].share * totalInterest / poolInfo.share - poolInfo.userInfo[user].accInterest;
+		uint claimedInterest;
+		if(poolInfo.share > 0){
+			claimedInterest = poolInfo.userInfo[user].share * totalInterest / poolInfo.share - poolInfo.userInfo[user].accInterest;
+		}else {
+			claimedInterest = 0;
+		}
 		if(claimedInterest > 0){
 			_aaveV3Withdraw(token, claimedInterest,true);
 			TransferHelper.safeTransfer(token, user, claimedInterest);
