@@ -31,6 +31,7 @@ const Swap: NextPage = () => {
     args: [],
     functionName: 'getReserves',
   })
+  console.log(connectedAddress)
   console.log("reserve result")
   console.log(reserves)
 
@@ -66,11 +67,13 @@ const Swap: NextPage = () => {
   const handleSwapAction = async () => {
   }
 
+  
+
   return (
     <>
       <div className="flex items-center flex-col flex-grow pt-10">
         <div className="stat-value flex items-center pt-10 mb-10">SWAP Between USDC and ETH</div>
-        <div className="card bg-neutral text-neutral-content w-96">
+        <div className="card bg-primary text-primary-content w-96 h-50">
           <div className="card-body items-center text-center">
             <div className="input input-bordered flex items-center">
               <input type="number" className="grow" placeholder="Sell Amount" value={sellAmount} onChange={(e) => setSellAmount(e.target.value)} />
@@ -109,7 +112,13 @@ const Swap: NextPage = () => {
             </div>
           </div>
           <div className="card-actions justify-end">
-            <button className="btn btn-primary btn-block" onClick={() => handleSwapAction()}>Swap</button>
+            <button className="btn btn-block" 
+              onClick={() => handleSwapAction()} 
+              disabled={connectedAddress === undefined}
+            >
+              Swap
+            </button>
+
           </div>
         </div>
       </div>
