@@ -127,7 +127,7 @@ const Liquidity: NextPage = () => {
       try {
         await usdcContract({
           functionName: "approve",
-          args: [routerContract.address, BigInt(10000000000000)],
+          args: [routerContract?.address, BigInt(10000000000000)],
         });
       } catch (e) {
         console.error("Error approve USDC:", e);
@@ -140,10 +140,10 @@ const Liquidity: NextPage = () => {
       try {
         const makeWriteWithParams = () =>
           writeContractAsync({
-            address: pair,
+            address: pair as string,
             functionName: 'approve',
             abi: UniswapV2PairABI,
-            args: [routerContract.address, BigInt(100000000000000000000)],
+            args: [routerContract?.address, BigInt(100000000000000000000)],
           });
         await writeTxn(makeWriteWithParams);
 
@@ -160,10 +160,10 @@ const Liquidity: NextPage = () => {
         try {
           const makeWriteWithParams = () =>
             writeContractAsync({
-              address: routerContract.address,
+              address: routerContract?.address as string,
               functionName: 'addLiquidityETH',
-              abi: routerContract.abi,
-              args: [externalContracts[202407311228].USDC.address, parseUnits(usdcAmount, 6), BigInt(0), BigInt(0), connectedAddress, Math.floor(Date.now() / 1000) + 36000000],
+              abi: routerContract?.abi as any,
+              args: [externalContracts[202407311228].USDC.address, parseUnits(usdcAmount, 6), BigInt(0), BigInt(0), connectedAddress as string, Math.floor(Date.now() / 1000) + 36000000],
               value: parseEther(ethAmount),
             });
           await writeTxn(makeWriteWithParams);
@@ -171,6 +171,7 @@ const Liquidity: NextPage = () => {
         } catch (e: any) {
           console.error("⚡️ ~ file: WriteOnlyFunctionForm.tsx:handleWrite ~ error", e);
         }
+        // @ts-ignore
         document.getElementById('add')?.close();
       }
     } else {
@@ -180,21 +181,22 @@ const Liquidity: NextPage = () => {
 
   const handleRemoveLiquidity = async () => {
     console.log(approvedLP)
-    if (approvedLP && BigInt(approvedLP as string) > BigInt(position) * BigInt(amount) / BigInt(100)) {
+    if (approvedLP && BigInt(approvedLP as string) > BigInt(position as string) * BigInt(amount) / BigInt(100)) {
       if (writeContractAsync) {
         try {
           console.log(BigInt(BigNumber(position as string).multipliedBy(BigNumber(amount)).dividedBy(BigNumber(100)).toString()), 'amount')
           const makeWriteWithParams = () =>
             writeContractAsync({
-              address: routerContract.address,
+              address: routerContract?.address as string,
               functionName: 'removeLiquidityETH',
-              abi: routerContract.abi,
-              args: [externalContracts[202407311228].USDC.address, BigInt(BigNumber(position as string).multipliedBy(BigNumber(amount)).dividedBy(BigNumber(100)).integerValue().toFixed()), BigInt(0), BigInt(0), connectedAddress, Math.floor(Date.now() / 1000) + 36000000],
+              abi: routerContract?.abi as any,
+              args: [externalContracts[202407311228].USDC.address, BigInt(BigNumber(position as string).multipliedBy(BigNumber(amount)).dividedBy(BigNumber(100)).integerValue().toFixed()), BigInt(0), BigInt(0), connectedAddress as string, Math.floor(Date.now() / 1000) + 36000000],
             });
           await writeTxn(makeWriteWithParams);
         } catch (e: any) {
           console.error("⚡️ ~ file: WriteOnlyFunctionForm.tsx:handleWrite ~ error", e);
         }
+        // @ts-ignore
         document.getElementById('remove')?.close();
 
       }
@@ -208,7 +210,9 @@ const Liquidity: NextPage = () => {
       <div className="flex items-center flex-col flex-grow pt-10">
         <div className="flex flex-row items-center justify-between my-5 min-w-96">
           <h1>Position</h1>
-          <button className="btn" onClick={() => document.getElementById('add').showModal()}>New Position</button>
+          <button className="btn" onClick={
+            // @ts-ignore
+            () => document.getElementById('add').showModal()}>New Position</button>
           <dialog id="add" className="modal">
             <div className="modal-box h-96">
               <form method="dialog">
@@ -240,10 +244,12 @@ const Liquidity: NextPage = () => {
                 <div className="flex flex-row justify-between py-1"><span>Total Pooled Tokens</span><span>{parseFloat(formatEther(position as bigint)).toFixed(10)}</span></div>
                 <div className="flex flex-row justify-between py-1"><span>Pooled ETH</span><span>{reserves ? formatEther(BigInt(BigNumber((reserves as any)[ETHIndex]).multipliedBy(percent).integerValue().toFixed())) : 0}</span></div>
                 <div className="flex flex-row justify-between py-1"><span>Pooled USDC</span><span>{reserves ? formatUnits((BigInt(BigNumber((reserves as any)[USDCIndex]).multipliedBy(percent).integerValue().toFixed())), 6) : 0}</span></div>
-                <div className="flex flex-row justify-between py-1"><span>Your Pool Share</span><span>{(parseFloat(position) / parseFloat(totalSupply as string) * 100).toFixed(2)}%</span></div>
+                <div className="flex flex-row justify-between py-1"><span>Your Pool Share</span><span>{(parseFloat(position as string) / parseFloat(totalSupply as string) * 100).toFixed(2)}%</span></div>
               </div>
 
-              <button className="btn btn-error" onClick={() => document.getElementById('remove').showModal()}>Remove</button>
+              <button className="btn btn-error" onClick={
+                // @ts-ignore
+                () => document.getElementById('remove').showModal()}>Remove</button>
               <dialog id="remove" className="modal">
                 <div className="modal-box h-96">
                   <form method="dialog">
@@ -264,7 +270,7 @@ const Liquidity: NextPage = () => {
                         <span>USDC</span> <span>{formatUnits(BigInt(BigNumber((reserves as any)[USDCIndex]).multipliedBy(percent).multipliedBy(amount).dividedBy(BigNumber(100)).integerValue().toFixed()), 6)}</span>
                       </label>
                     </div>
-                    <button className="btn btn-error w-full" onClick={() => handleRemoveLiquidity()}>{BigInt(approvedLP as string) > BigInt(position) * BigInt(amount) / BigInt(100) ? 'Remove' : 'Approve'}</button>
+                    <button className="btn btn-error w-full" onClick={() => handleRemoveLiquidity()}>{BigInt(approvedLP as string) > BigInt(position as string) * BigInt(amount) / BigInt(100) ? 'Remove' : 'Approve'}</button>
 
                   </div>
 
