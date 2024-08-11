@@ -9,6 +9,7 @@ import {
   useScaffoldReadContract,
   useScaffoldWriteContract,
   useTargetNetwork,
+  useTransactor,
   useWatchBalance,
 } from "../../hooks/scaffold-eth";
 import { contracts } from "../../utils/scaffold-eth/contract";
@@ -23,7 +24,9 @@ type ListItem  = {token:string; itemType:"Interest"|"Reward"; available:bigint}
 
 const Rewards: NextPage = () => {
   const [list, setList] = useState<ListItem[]>([])
+  const [refresh,setRefresh] = useState(0)
 
+  const writeTxn = useTransactor()
   const { address:userAddress } = useAccount();
   const {data:uniXHelperInfo} = useDeployedContractInfo("UniXHelper")
   const {data:usdcInfo} = useDeployedContractInfo("USDC")
@@ -43,15 +46,11 @@ const Rewards: NextPage = () => {
     args:[userAddress, unixBankInfo?.address]
   })
 
-
   const {data:userUSDCInterest,isLoading:isUSDCInterestLoading,isSuccess:isUSDCInterestSuccess} = useSimulateContract({
     abi:uniXHelperInfo?.abi,
     address:uniXHelperInfo?.address,
     functionName:"getUserInterest",
     args:[userAddress??"",usdcInfo?.address,unixBankInfo?.address],
-    query:{
-      refetchInterval:3000
-    }
   })
 
   const {data:userWBTCInterest,isLoading:isWBTCInterestLoading,isSuccess:isWBTCInterestSuccess} = useSimulateContract({
@@ -59,9 +58,6 @@ const Rewards: NextPage = () => {
     address:uniXHelperInfo?.address,
     functionName:"getUserInterest",
     args:[userAddress??"",wbtcInfo?.address,unixBankInfo?.address],
-    query:{
-      refetchInterval:3000
-    }
   })
 
   const {data:userWETHInterest,isLoading:isETHInterestLoading,isSuccess:isETHInterestSuccess,error} = useSimulateContract({
@@ -69,9 +65,6 @@ const Rewards: NextPage = () => {
     address:uniXHelperInfo?.address,
     functionName:"getUserInterest",
     args:[userAddress??"",WETHInfo?.address,unixBankInfo?.address],
-    query:{
-      refetchInterval:3000
-    }
   })
 
   const {data:userUSDCRewards,isLoading:isUSDCRewardLoading,isSuccess:isUSDCRewardSuccess} = useSimulateContract({
@@ -79,9 +72,6 @@ const Rewards: NextPage = () => {
     address:uniXHelperInfo?.address,
     functionName:"getUserRewards",
     args:[userAddress,usdcInfo?.address,rewardControllerInfo?.address,poolInfo?.address,unixBankInfo?.address],
-    query:{
-      refetchInterval:3000
-    }
   })
 
   const {data:userWBTCRewards,isLoading:isWBTCRewardLoading,isSuccess:isWBTCRewardSuccess} = useSimulateContract({
@@ -89,9 +79,6 @@ const Rewards: NextPage = () => {
     address:uniXHelperInfo?.address,
     functionName:"getUserRewards",
     args:[userAddress,wbtcInfo?.address,rewardControllerInfo?.address,poolInfo?.address,unixBankInfo?.address],
-    query:{
-      refetchInterval:3000
-    }
   })
 
   const {data:userETHRewards,isLoading:isETHRewardLoading,isSuccess:isETHRewardSuccess} = useSimulateContract({
@@ -99,9 +86,6 @@ const Rewards: NextPage = () => {
     address:uniXHelperInfo?.address,
     functionName:"getUserRewards",
     args:[userAddress,aaveWETHInfo?.address,rewardControllerInfo?.address,poolInfo?.address,unixBankInfo?.address],
-    query:{
-      refetchInterval:3000
-    }
   })
 
   useEffect(()=>{
@@ -148,19 +132,21 @@ const Rewards: NextPage = () => {
 
   const handleClaim = useCallback(async (token:string,type:"Interest"|"Reward")=>{
     if(type === "Interest"){
-      await writeContractAsync({
+      await writeTxn(()=>writeContractAsync({
         abi:unixBankInfo?.abi??[],
         address:unixBankInfo?.address??"",
         functionName:"claimInterest",
         args:[userAddress??"",token]
-      })
+      }))
+      setRefresh(refresh+1)
     }else{
-      await writeContractAsync({
+      await writeTxn(()=>writeContractAsync({
         abi:unixBankInfo?.abi??[],
         address:unixBankInfo?.address??"",
         functionName:"claimReward",
         args:[userAddress??"",token]
-      })
+      }))
+      setRefresh(refresh+1)
     }
   },[unixBankInfo])
 
