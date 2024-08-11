@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import type { NextPage } from "next";
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
-import { IntegerInput } from "~~/components/scaffold-eth";
-import { useDeployedContractInfo, useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { useDeployedContractInfo, useScaffoldReadContract, useScaffoldWriteContract, useTransactor } from "~~/hooks/scaffold-eth";
 import UniswapV2PairABI from "~~/contracts/abis/UniswapV2Pair.json";
 import externalContracts from "~~/contracts/externalContracts";
+import deployedContracts from "~~/contracts/deployedContracts";
 
 const Swap: NextPage = () => {
   const { address: connectedAddress } = useAccount();
@@ -18,6 +18,12 @@ const Swap: NextPage = () => {
   const { writeContractAsync: usdcContract } = useScaffoldWriteContract("USDC");
   const { data: routerContract, isLoading: deployedContractLoading } = useDeployedContractInfo("UniswapV2Router02");
   const { data: result, isPending, writeContractAsync } = useWriteContract();
+  const { data: unixBankInfo } = useDeployedContractInfo("UniXBank")
+  const { data: approvedUSDC } = useScaffoldReadContract({
+    contractName: "USDC",
+    functionName: "allowance",
+    args: [connectedAddress, deployedContracts[202407311228].UniswapV2Router02.address],
+  });
 
   const { data: pair } = useScaffoldReadContract({
     contractName: "UniswapV2Factory",
@@ -31,23 +37,7 @@ const Swap: NextPage = () => {
     args: [],
     functionName: 'getReserves',
   })
-  console.log(connectedAddress)
-  console.log("reserve result")
-  console.log(reserves)
-
-  const handleApproveUSDC = async () => {
-    console.log(usdcContract)
-    if (usdcContract) {
-      try {
-        await usdcContract({
-          functionName: "approve",
-          args: [routerContract.address, BigInt(10000000000000)],
-        });
-      } catch (e) {
-        console.error("Error approve USDC:", e);
-      }
-    }
-  };
+  console.log("reserve result", reserves)
 
   function getBuyAmount(amount: string, coin: string) {
     if (amount === undefined || coin === undefined) { return "" }
@@ -64,16 +54,59 @@ const Swap: NextPage = () => {
     setBuyAmount(buy_amount)
   }, [sellAmount, sellCoin]);
 
-  const handleSwapAction = async () => {
-  }
+  const writeTxn = useTransactor();
 
-  
+  const handleApproveUSDC = async () => {
+    if (usdcContract) {
+      try {
+        await usdcContract({
+          functionName: "approve",
+          args: [unixBankInfo!.address, BigInt(9999999)],
+        });
+      } catch (e) {
+        console.error("Error approve USDC:", e);
+      }
+    }
+  };
+
+  const handleSwapAction = async () => {
+    if (sellCoin === "ETH") {
+      try {
+        const makeWriteWithParams = () =>
+          writeContractAsync({
+            address: routerContract!.address,
+            functionName: 'swapExactETHForTokens',
+            abi: routerContract!.abi,
+            args: [BigInt(0), [wethContract!.address, externalContracts[202407311228].USDC.address], connectedAddress, BigInt(Math.floor(Date.now() / 1000) + 36000000)],
+            value: BigInt(sellAmount)
+          })
+      } catch (e: any) {
+        console.error(e)
+      }
+    } else {
+      if (approvedUSDC && BigInt(sellAmount) > approvedUSDC ) {
+        handleApproveUSDC
+      }
+      try {
+        const makeWriteWithParams = () =>
+          writeContractAsync({
+            address: routerContract!.address,
+            functionName: 'swapExactTokensForETH',
+            abi: routerContract!.abi,
+            args: [BigInt(sellAmount), BigInt(0), [externalContracts[202407311228].USDC.address, wethContract!.address], connectedAddress!, BigInt(Math.floor(Date.now() / 1000) + 36000000)]
+          })
+          await writeTxn(makeWriteWithParams);
+      } catch (e: any) {
+        console.error(e)
+      }
+    }
+  }
 
   return (
     <>
       <div className="flex items-center flex-col flex-grow pt-10">
         <div className="stat-value flex items-center pt-10 mb-10">SWAP Between USDC and ETH</div>
-        <div className="card bg-primary text-primary-content w-96 h-50">
+        <div className="card bg-base-100 text-primary-content w-96 h-50">
           <div className="card-body items-center text-center">
             <div className="input input-bordered flex items-center">
               <input type="number" className="grow" placeholder="Sell Amount" value={sellAmount} onChange={(e) => setSellAmount(e.target.value)} />
@@ -83,11 +116,11 @@ const Swap: NextPage = () => {
                   <dialog id="select_coin" className="modal">
                     <div className="modal-box">
                       <form method="dialog">
-                        <button className="btn btn-primary m-10" onClick={() => {
+                        <button className="btn m-10" onClick={() => {
                           setSellCoin("USDC")
                           setBuyCoin("ETH")
                         }}>USDC</button>
-                        <button className="btn btn-primary m-10" onClick={() => {
+                        <button className="btn m-10" onClick={() => {
                           setSellCoin("ETH")
                           setBuyCoin("USDC")
                         }}>ETH</button>
@@ -111,14 +144,13 @@ const Swap: NextPage = () => {
               </div>
             </div>
           </div>
-          <div className="card-actions justify-end">
-            <button className="btn btn-block" 
+          <div className="card-actions justify-center m-5">
+            <button className="btn" 
               onClick={() => handleSwapAction()} 
               disabled={connectedAddress === undefined}
             >
               Swap
             </button>
-
           </div>
         </div>
       </div>
