@@ -14,8 +14,10 @@ import {
 import { contracts } from "../../utils/scaffold-eth/contract";
 import { getAllContracts } from "../../utils/scaffold-eth/contractsData";
 import { NextPage } from "next";
-import { useAccount, useSimulateContract, useToken, useWriteContract } from "wagmi";
+import { useAccount, useReadContract, useReadContracts, useSimulateContract, useToken, useWriteContract } from "wagmi";
 import { Address, Balance } from "../../components/scaffold-eth";
+import BigNumber from "bignumber.js";
+import { formatValue } from "../../utils/BignumberUtil";
 
 type ListItem  = {token:string; itemType:"Interest"|"Reward"; available:bigint}
 
@@ -34,6 +36,13 @@ const Rewards: NextPage = () => {
   const {data:rewardControllerInfo} = useDeployedContractInfo("AaveV3RewardController")
   const {data:poolInfo} = useDeployedContractInfo("AaveV3Pool")
   const {writeContractAsync} = useWriteContract()
+
+  const {data} = useScaffoldReadContract({
+    contractName:"USDC",
+    functionName:"allowance",
+    args:[userAddress, unixBankInfo?.address]
+  })
+
 
   const {data:userUSDCInterest,isLoading:isUSDCInterestLoading,isSuccess:isUSDCInterestSuccess} = useSimulateContract({
     abi:uniXHelperInfo?.abi,
@@ -83,8 +92,6 @@ const Rewards: NextPage = () => {
       data.push({token:usdcInfo?.address??"",itemType:"Interest",available:userUSDCInterest?.result})
       data.push({token:wbtcInfo?.address??"",itemType:"Interest",available:userWBTCInterest?.result});
       data.push({token:WETHInfo?.address??"",itemType:"Interest",available:userWETHInterest?.result});
-
-
       (userUSDCRewards.result[0] as string[]).map((tokenAddress,i)=>{
         data.push({token:tokenAddress,itemType:"Reward",available:userUSDCRewards.result[1][i]})
       });
@@ -119,6 +126,8 @@ const Rewards: NextPage = () => {
     
   },[isUSDCInterestLoading,isWBTCInterestLoading,isETHInterestLoading,isUSDCRewardLoading,isWBTCRewardLoading,isETHRewardLoading])
 
+
+
   const handleClaim = useCallback(async (token:string,type:"Interest"|"Reward")=>{
     if(type === "Interest"){
       await writeContractAsync({
@@ -137,23 +146,71 @@ const Rewards: NextPage = () => {
     }
   },[unixBankInfo])
 
+
   return (
-    <div className="flex flex-col items-center h-screen ml-20 mr-20 w-auto">
-      {list.map((data,i)=>{
-        return <div className="flex w-screen h-auto pt-4 pb4" key={i}>
-        <span className="flex-1">{data.token}</span>
-        <span className="flex-1">{data.available.toString()}</span>
-        <button className=" w-40" onClick={()=>{
-          try{
-            handleClaim(data.token,data.itemType)
-          }catch(error){
-            console.error("handleClaim error:", error);
-          }
-        }}>claim</button>
+    <div className="flex flex-col items-center h-auto">
+      <div className="flex w-screen h-auto pt-4 pl-12 pr-12">
+        <span className="w-40">Symbol</span>
+        <span className="flex-1">TokenAddress</span>
+        <span className="flex-1">Balance</span>
+        <span className="flex-1">Available</span>
+        <span>Option</span>
       </div>
+      {list.map((data,i)=>{
+
+      return <ItemView data={data} key={i} handleClaim={()=>handleClaim(data.token,data.itemType)} abi={WETHInfo?.abi} user={userAddress??""}/>
       })}
     </div>
   );
 };
+
+const ItemView = ({data,handleClaim,abi,user}:{data:ListItem,handleClaim:()=>void,abi:any,user:string})=>{
+  const [balance,setBalance] = useState("")
+  const [available,setAvailable] = useState("")
+  const {data:symbol} = useReadContract({
+    abi,
+    functionName:"symbol",
+    address:data.token,
+    args:[]
+  })
+  const {data:balanceOf,isLoading:isBalanceLoading,isSuccess:isBalanceSuccess} = useReadContract({
+    abi,
+    functionName:"balanceOf",
+    address:data.token,
+    args:[user]
+  })
+
+  const {data:decimals,isLoading:isDecimalsLoading,isSuccess:isDecimalsSuccess} = useReadContract({
+    abi,
+    functionName:"decimals",
+    address:data.token,
+    args:[]
+  })
+
+  useEffect(()=>{
+    if(isBalanceSuccess&&isDecimalsSuccess){
+      const b = balanceOf as bigint
+      const d = decimals  as number
+      const bal = BigNumber(b.toString()).div(BigNumber(10 ** d))
+      setBalance(formatValue(bal.toString(),18))
+      const ava =BigNumber(data.available.toString()).div(BigNumber(10 ** d))
+      setAvailable(formatValue(ava.toString(),18))
+    }
+  },[isBalanceLoading,isDecimalsLoading])
+
+  return <div className="flex w-screen h-auto pt-4 pl-12 pr-8">
+  <span className="w-40">{symbol as string}</span>
+  <span className="flex-1">{data.token.slice(0,4) + "..." +data.token.slice(data.token.length - 4,data.token.length)}</span>
+  <span className="flex-1">{balance}</span>
+  <span className="flex-1">{available}</span>
+  <button className="btn" onClick={()=>{
+    try{
+      handleClaim()
+    }catch(error){
+      console.error("handleClaim error:", error)
+    }
+  }}>claim</button>
+</div>
+}
 
 export default Rewards;
