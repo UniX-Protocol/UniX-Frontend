@@ -56,7 +56,7 @@ const Liquidity: NextPage = () => {
     args: [connectedAddress],
     functionName: 'balanceOf',
     query: {
-      refetchInterval: 1000,
+      refetchInterval: 2000,
     }
   })
 
@@ -66,7 +66,7 @@ const Liquidity: NextPage = () => {
     args: [connectedAddress, deployedContracts[202407311228].UniswapV2Router02.address],
     functionName: 'allowance',
     query: {
-      refetchInterval: 1000,
+      refetchInterval: 2000,
     }
   })
 
@@ -108,8 +108,8 @@ const Liquidity: NextPage = () => {
   })
 
 
-  const percent = position ? BigNumber(position as string).div(BigNumber(totalSupply as string)) : BigNumber(0);
-  console.log(percent, percent.toFixed(),'percent')
+  const percent = position && totalSupply ? BigNumber(position as string).div(BigNumber(totalSupply as string)) : BigNumber(0);
+  console.log(percent, percent.toFixed(), 'percent')
 
   console.log(reserves ? (BigNumber((reserves as any)[ETHIndex]).multipliedBy(percent).integerValue().toFixed()) : 0, 'bignumber')
 
@@ -184,7 +184,7 @@ const Liquidity: NextPage = () => {
     if (approvedLP && BigInt(approvedLP as string) > BigInt(position as string) * BigInt(amount) / BigInt(100)) {
       if (writeContractAsync) {
         try {
-          console.log(BigInt(BigNumber(position as string).multipliedBy(BigNumber(amount)).dividedBy(BigNumber(100)).toString()), 'amount')
+          console.log(BigInt(BigNumber(position as string).multipliedBy(BigNumber(amount)).dividedBy(BigNumber(100)).integerValue().toFixed()), 'amount')
           const makeWriteWithParams = () =>
             writeContractAsync({
               address: routerContract?.address as string,
@@ -270,7 +270,7 @@ const Liquidity: NextPage = () => {
                         <span>USDC</span> <span>{formatUnits(BigInt(BigNumber((reserves as any)[USDCIndex]).multipliedBy(percent).multipliedBy(amount).dividedBy(BigNumber(100)).integerValue().toFixed()), 6)}</span>
                       </label>
                     </div>
-                    <button className="btn btn-error w-full" onClick={() => handleRemoveLiquidity()}>{BigInt(approvedLP as string) > BigInt(position as string) * BigInt(amount) / BigInt(100) ? 'Remove' : 'Approve'}</button>
+                    <button className="btn btn-error w-full" onClick={() => handleRemoveLiquidity()}>{BigInt(approvedLP ? approvedLP as string : 0) > BigInt(position ? position as string : 0) * BigInt(amount) / BigInt(100) ? 'Remove' : 'Approve'}</button>
 
                   </div>
 
