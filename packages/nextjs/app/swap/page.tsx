@@ -7,6 +7,8 @@ import { useDeployedContractInfo, useScaffoldReadContract, useScaffoldWriteContr
 import UniswapV2PairABI from "~~/contracts/abis/UniswapV2Pair.json";
 import externalContracts from "~~/contracts/externalContracts";
 import deployedContracts from "~~/contracts/deployedContracts";
+import BigNumber from "bignumber.js";
+import { parseEther, parseUnits } from "viem";
 
 const Swap: NextPage = () => {
   const { address: connectedAddress } = useAccount();
@@ -38,14 +40,25 @@ const Swap: NextPage = () => {
     functionName: 'getReserves',
   })
   console.log("reserve result", reserves)
+  const { data: token0 } = useReadContract({
+    abi: UniswapV2PairABI,
+    address: pair,
+    args: [],
+    functionName: 'token0',
+  })
+
+  const ETHIndex = token0 === wethContract?.address ? 0 : 1;
+  const USDCIndex = ETHIndex === 0 ? 1 : 0;
 
   function getBuyAmount(amount: string, coin: string) {
     if (amount === undefined || coin === undefined) { return "" }
     if (!reserves) { return "" }
     if (coin === "ETH") {
-      return String(parseInt(amount) * 3000 / 1)
+      return String(BigNumber(amount).multipliedBy((BigNumber((reserves as any)[USDCIndex]).dividedBy(BigNumber(1e6))).dividedBy((BigNumber((reserves as any)[ETHIndex]).dividedBy(BigNumber(1e18))))))
+    } else if (coin === "USDC") {
+      return String(BigNumber(amount).multipliedBy((BigNumber((reserves as any)[ETHIndex]).dividedBy(BigNumber(1e18))).dividedBy((BigNumber((reserves as any)[USDCIndex]).dividedBy(BigNumber(1e6))))))
     } else {
-      return String(parseInt(amount) * 1 / 3000)
+      return ""
     }
   }
 
@@ -78,8 +91,9 @@ const Swap: NextPage = () => {
             functionName: 'swapExactETHForTokens',
             abi: routerContract!.abi,
             args: [BigInt(0), [wethContract!.address, externalContracts[202407311228].USDC.address], connectedAddress, BigInt(Math.floor(Date.now() / 1000) + 36000000)],
-            value: BigInt(sellAmount)
+            value: parseEther(sellAmount)
           })
+          await writeTxn(makeWriteWithParams);
       } catch (e: any) {
         console.error(e)
       }
@@ -93,7 +107,7 @@ const Swap: NextPage = () => {
             address: routerContract!.address,
             functionName: 'swapExactTokensForETH',
             abi: routerContract!.abi,
-            args: [BigInt(sellAmount), BigInt(0), [externalContracts[202407311228].USDC.address, wethContract!.address], connectedAddress!, BigInt(Math.floor(Date.now() / 1000) + 36000000)]
+            args: [parseUnits(sellAmount, 6), BigInt(0), [externalContracts[202407311228].USDC.address, wethContract!.address], connectedAddress!, BigInt(Math.floor(Date.now() / 1000) + 36000000)]
           })
           await writeTxn(makeWriteWithParams);
       } catch (e: any) {
