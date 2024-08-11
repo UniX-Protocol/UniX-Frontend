@@ -13,7 +13,7 @@ import { parseEther, parseUnits } from "viem";
 const Swap: NextPage = () => {
   const { address: connectedAddress } = useAccount();
   const [sellCoin, setSellCoin] = useState<string>("Select coin")
-  const [buyCoin, setBuyCoin] = useState<String>("Select coin")
+  const [buyCoin, setBuyCoin] = useState<string>("Select coin")
   const [sellAmount, setSellAmount] = useState("")
   const [buyAmount, setBuyAmount] = useState("")
   const { data: wethContract } = useDeployedContractInfo("WETH9");
@@ -49,6 +49,22 @@ const Swap: NextPage = () => {
 
   const ETHIndex = token0 === wethContract?.address ? 0 : 1;
   const USDCIndex = ETHIndex === 0 ? 1 : 0;
+
+  const { data: ethbalance } = useReadContract({
+    abi: UniswapV2PairABI,
+    functionName: "balanceOf",
+    address: wethContract?.address,
+    args: [connectedAddress]
+  })
+
+  const { data: usdcbalance } = useReadContract({
+    abi: UniswapV2PairABI,
+    functionName: "balanceOf",
+    address: externalContracts[202407311228].USDC.address,
+    args: [connectedAddress]
+  })
+  console.log("eth balance", ethbalance)
+  console.log("usdc balance", usdcbalance)
 
   function getBuyAmount(amount: string, coin: string) {
     if (amount === undefined || coin === undefined) { return "" }
@@ -111,7 +127,7 @@ const Swap: NextPage = () => {
           })
           await writeTxn(makeWriteWithParams);
       } catch (e: any) {
-        console.error(e)
+        console.error("Error swap usdc to eth", e)
       }
     }
   }
