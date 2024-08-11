@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   202407311228: {
     UniXBank: {
-      address: "0xB552efe0bCCD739e2Eb7A6F07EF070077ee8cd11",
+      address: "0x467c2177eB0D58bFaa5E4d20E8c8BFe126Dd62b8",
       abi: [
         {
           inputs: [
@@ -349,7 +349,7 @@ const deployedContracts = {
       inheritedFunctions: {},
     },
     UniXHelper: {
-      address: "0xc8225C31026DaC5a0d9e25b1c42ceD24c879F329",
+      address: "0x19521Ae5f8d7997fDEd3737E4AcCdB934eFC8389",
       abi: [
         {
           inputs: [],
@@ -433,7 +433,7 @@ const deployedContracts = {
       inheritedFunctions: {},
     },
     UniswapV2Factory: {
-      address: "0xdc389Eb3Cd52abf52dEC70A0FBB53A3246d39BA6",
+      address: "0x2B64b17741DC55012Dbd99D429eca48B5278c4Aa",
       abi: [
         {
           inputs: [
@@ -659,7 +659,7 @@ const deployedContracts = {
       },
     },
     UniswapV2Router02: {
-      address: "0x2156d08CC9fb016323f9B00aB34a294Dd162a833",
+      address: "0x0c2Da2Ec96E26A5BBA8cf71695735c67c90d16Ef",
       abi: [
         {
           inputs: [
@@ -1681,7 +1681,7 @@ const deployedContracts = {
       },
     },
     WETH9: {
-      address: "0x565592825a72e6D26E9335399F6bB6EbF00Bc4f2",
+      address: "0x69C42B6a85Ba42Eed29e2bb33fD6Bfa1849Fcbf8",
       abi: [
         {
           anonymous: false,

@@ -8,7 +8,6 @@ import './libraries/UniswapV2Library.sol';
 import './libraries/SafeMath.sol';
 import './interfaces/IERC20.sol';
 import './interfaces/IWETH.sol';
-import 'hardhat/console.sol';
 
 interface IUniswapV2Factory {
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);
@@ -39,7 +38,6 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
     address public immutable override WETH;
 
     modifier ensure(uint deadline) {
-        console.log("deadline %o block.timestamp: %o",deadline,block.timestamp);
         require(deadline >= block.timestamp, 'UniswapV2Router: EXPIRED');
         _;
     }

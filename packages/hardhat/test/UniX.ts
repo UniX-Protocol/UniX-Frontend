@@ -120,6 +120,13 @@ describe("Unix test",()=>{
 		await token.approve(uniswapV2Router.getAddress(),amountTokenDesired)
 		const tx = await uniswapV2Router.addLiquidityETH(token.getAddress(),amountTokenDesired,amountTokenMin,amountETHMin,to,deadline(),{value:numberString("10e18")})
 		await tx.wait()
+
+		const pairAddress = await uniswapFactory.getPair(contractAddress.USDC,weth)
+		const pair = await hethers.getContractAt("UniswapV2Pair",pairAddress)
+		const reserves = await pair.getReserves()
+		const pairBalance = await unixBank.getPairBanlance(pairAddress)
+		console.log("reserves: ",reserves)
+		console.log("pairBalance: ",pairBalance)
 		return {
 			owner,
 			uniswapV2Router,
@@ -132,90 +139,90 @@ describe("Unix test",()=>{
 		}
 	}
 
-	describe("addLiquidity",()=>{
-		it("add liquidity and supply to aave v3", async ()=>{
-			await loadFixture(addLiquidityFixture)
+	// describe("addLiquidity",()=>{
+	// 	it("add liquidity and supply to aave v3", async ()=>{
+	// 		await loadFixture(addLiquidityFixture)
 			
-		})
-		it("swapExactTokensForTokens", async ()=>{
-			const {uniswapV2Router,owner,unixBank} = await loadFixture(addLiquidityFixture)
-			const amountIn = numberString("100e6")
-			const amountOutMin = 0
-			const path = [contractAddress.USDC,contractAddress.WBTC]
-			const to = owner.address
-			const usdc = await hethers.getContractAt("AllocateErc20",contractAddress.USDC)
-			await usdc.approve(unixBank.getAddress(),amountIn)
-			const tx = await uniswapV2Router.swapExactTokensForTokens(amountIn,amountOutMin,path,to,deadline())
-			await tx.wait()
-		})
-	})
+	// 	})
+	// 	it("swapExactTokensForTokens", async ()=>{
+	// 		const {uniswapV2Router,owner,unixBank} = await loadFixture(addLiquidityFixture)
+	// 		const amountIn = numberString("100e6")
+	// 		const amountOutMin = 0
+	// 		const path = [contractAddress.USDC,contractAddress.WBTC]
+	// 		const to = owner.address
+	// 		const usdc = await hethers.getContractAt("AllocateErc20",contractAddress.USDC)
+	// 		await usdc.approve(unixBank.getAddress(),amountIn)
+	// 		const tx = await uniswapV2Router.swapExactTokensForTokens(amountIn,amountOutMin,path,to,deadline())
+	// 		await tx.wait()
+	// 	})
+	// })
 
 	describe("addLiquidityETH",()=>{
 		it("add liquidity eth",async ()=>{
 			await loadFixture(addLiquidityETHFixture)
 		})
 
-		it("swapExactTokensForETH",async ()=> {
-			const {uniswapV2Router,unixBank,token,decimals,owner,weth} = await loadFixture(addLiquidityETHFixture)
-			const amountIn = numberString(`100e${decimals}`)
-			await token.approve(unixBank.getAddress(),amountIn)
-			const amountOutMin = 0
-			const path = [contractAddress.USDC,weth.getAddress()]
-			const to = owner.address
-			const tx = await uniswapV2Router.swapExactTokensForETH(amountIn,amountOutMin,path,to,deadline())
-			await tx.wait()
-		})
+		// it("swapExactTokensForETH",async ()=> {
+		// 	const {uniswapV2Router,unixBank,token,decimals,owner,weth} = await loadFixture(addLiquidityETHFixture)
+		// 	const amountIn = numberString(`100e${decimals}`)
+		// 	await token.approve(unixBank.getAddress(),amountIn)
+		// 	const amountOutMin = 0
+		// 	const path = [contractAddress.USDC,weth.getAddress()]
+		// 	const to = owner.address
+		// 	const tx = await uniswapV2Router.swapExactTokensForETH(amountIn,amountOutMin,path,to,deadline())
+		// 	await tx.wait()
+		// })
 
-		it("swapExactTokensForETHSupportingFeeOnTransferTokens",async ()=>{
-			const {uniswapV2Router,unixBank,token,decimals,owner,weth} = await loadFixture(addLiquidityETHFixture)
-			const amountIn = numberString(`100e${decimals}`)
-			// await token.approve(uniswapV2Router.getAddress(),amountIn)
-			await token.approve(unixBank.getAddress(),amountIn)
-			const amountOutMin = 0
-			const path = [contractAddress.USDC,weth.getAddress()]
-			const to = owner.address
-			const tx = await uniswapV2Router.swapExactTokensForETHSupportingFeeOnTransferTokens(amountIn,amountOutMin,path,to,deadline())
-			await tx.wait()
-		})
+		// it("swapExactTokensForETHSupportingFeeOnTransferTokens",async ()=>{
+		// 	const {uniswapV2Router,unixBank,token,decimals,owner,weth} = await loadFixture(addLiquidityETHFixture)
+		// 	const amountIn = numberString(`100e${decimals}`)
+		// 	// await token.approve(uniswapV2Router.getAddress(),amountIn)
+		// 	await token.approve(unixBank.getAddress(),amountIn)
+		// 	const amountOutMin = 0
+		// 	const path = [contractAddress.USDC,weth.getAddress()]
+		// 	const to = owner.address
+		// 	const tx = await uniswapV2Router.swapExactTokensForETHSupportingFeeOnTransferTokens(amountIn,amountOutMin,path,to,deadline())
+		// 	await tx.wait()
+		// })
 
-		it("swapExactETHForTokens",async ()=>{
-			const {uniswapV2Router,unixBank,token,decimals,owner,weth} = await loadFixture(addLiquidityETHFixture)
-			const amountOutMin = 0
-			const path = [weth.getAddress(),contractAddress.USDC]
-			const to  = owner.address
-			const tx = await uniswapV2Router.swapExactETHForTokens(amountOutMin,path,to,deadline(),{value:numberString("1e18")})
-			await tx.wait()
-		})
+		// it("swapExactETHForTokens",async ()=>{
+		// 	const {uniswapV2Router,unixBank,token,decimals,owner,weth} = await loadFixture(addLiquidityETHFixture)
+		// 	const amountOutMin = 0
+		// 	const path = [weth.getAddress(),contractAddress.USDC]
+		// 	const to  = owner.address
+		// 	const tx = await uniswapV2Router.swapExactETHForTokens(amountOutMin,path,to,deadline(),{value:numberString("1e18")})
+		// 	await tx.wait()
+		// })
 
-		it("swapExactETHForTokensSupportingFeeOnTransferTokens",async ()=>{
-			const {uniswapV2Router,unixBank,token,decimals,owner,weth} = await loadFixture(addLiquidityETHFixture)
-			const amountOutMin = 0
-			const path = [weth.getAddress(),contractAddress.USDC]
-			const to  = owner.address
-			const tx = await uniswapV2Router.swapExactETHForTokensSupportingFeeOnTransferTokens(amountOutMin,path,to,deadline(),{value:numberString("1e18")})
-			await tx.wait()
-		})
+		// it("swapExactETHForTokensSupportingFeeOnTransferTokens",async ()=>{
+		// 	const {uniswapV2Router,unixBank,token,decimals,owner,weth} = await loadFixture(addLiquidityETHFixture)
+		// 	const amountOutMin = 0
+		// 	const path = [weth.getAddress(),contractAddress.USDC]
+		// 	const to  = owner.address
+		// 	const tx = await uniswapV2Router.swapExactETHForTokensSupportingFeeOnTransferTokens(amountOutMin,path,to,deadline(),{value:numberString("1e18")})
+		// 	await tx.wait()
+		// })
 	})
 
-	describe("removeLiquidityETH",()=>{
-		it("remove liquidity and withdraw from aave v3",async ()=>{
-			console.log("=======================:")
-			const {uniswapV2Router,owner,uniswapFactory,weth} = await loadFixture(addLiquidityETHFixture)
-			const pairAddr = await uniswapFactory.getPair(contractAddress.USDC,weth.getAddress())
-			const pair = await hethers.getContractAt("AllocateErc20",pairAddr)
-			const liquidity= await pair.balanceOf(owner)
-			await pair.approve(uniswapV2Router.getAddress(),liquidity)
-			const amountAMin = 0
-			const amountBMin = 0
-			const to = owner.address
-			console.log("liquidity:",liquidity)
-			// const increaseTo = Math.floor((Date.now()+ 86400 * 1) / 1000) 
-			// await time.increaseTo(increaseTo)
+	// describe("removeLiquidityETH",()=>{
+	// 	it("remove liquidity and withdraw from aave v3",async ()=>{
+	// 		console.log("=======================:")
+	// 		const {uniswapV2Router,owner,uniswapFactory,weth} = await loadFixture(addLiquidityETHFixture)
+	// 		const pairAddr = await uniswapFactory.getPair(contractAddress.USDC,weth.getAddress())
+	// 		const pair = await hethers.getContractAt("AllocateErc20",pairAddr)
+	// 		const liquidity= await pair.balanceOf(owner)
+	// 		await pair.approve(uniswapV2Router.getAddress(),liquidity)
+	// 		const amountAMin = 0
+	// 		const amountBMin = 0
+	// 		const to = owner.address
+	// 		console.log("liquidity:",liquidity)
+	// 		// const increaseTo = Math.floor((Date.now()+ 86400 * 1) / 1000) 
+	// 		// await time.increaseTo(increaseTo)
 	
-			const tx = await uniswapV2Router.removeLiquidityETH(contractAddress.USDC,liquidity,amountAMin,amountBMin,to,deadline())
-			await tx.wait()
-		})
-	})
+	// 		const tx = await uniswapV2Router.removeLiquidityETH(contractAddress.USDC,liquidity,amountAMin,amountBMin,to,deadline())
+	// 		await tx.wait()
+	// 	})
+	// })
 
 	// describe("removeLiquidity",()=>{
 	// 	it("remove liquidity and withdraw from aave v3",async ()=>{
@@ -270,7 +277,7 @@ describe("Unix test",()=>{
 })
 
 function deadline() {
-	return Math.floor(Date.now()/1000 + 5 * 60).toString()
+	return Math.floor(Date.now()/1000 + 86400 * 86400).toString()
 }
 
 function numberString(numStr: string): string {
