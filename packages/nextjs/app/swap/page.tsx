@@ -12,8 +12,8 @@ import { parseEther, parseUnits } from "viem";
 
 const Swap: NextPage = () => {
   const { address: connectedAddress } = useAccount();
-  const [sellCoin, setSellCoin] = useState<string>("Select coin")
-  const [buyCoin, setBuyCoin] = useState<string>("Select coin")
+  const [sellCoin, setSellCoin] = useState<string>("ETH")
+  const [buyCoin, setBuyCoin] = useState<string>("USDC")
   const [sellAmount, setSellAmount] = useState("")
   const [buyAmount, setBuyAmount] = useState("")
   const { data: wethContract } = useDeployedContractInfo("WETH9");
