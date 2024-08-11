@@ -41,6 +41,12 @@ const Liquidity: NextPage = () => {
     args: [wethContract?.address, externalContracts[202407311228].USDC.address],
   });
 
+  const { data: reserves } = useScaffoldReadContract({
+    contractName: "UniXBank",
+    functionName: "getPairBanlance",
+    args: [pair],
+  });
+
   // console.log(pair, 'pair')
 
   const { data: position } = useReadContract({
@@ -48,6 +54,9 @@ const Liquidity: NextPage = () => {
     address: pair,
     args: [connectedAddress],
     functionName: 'balanceOf',
+    query: {
+      refetchInterval: 1000,
+    }
   })
 
   const { data: approvedLP } = useReadContract({
@@ -55,14 +64,29 @@ const Liquidity: NextPage = () => {
     address: pair,
     args: [connectedAddress, deployedContracts[202407311228].UniswapV2Router02.address],
     functionName: 'allowance',
+    query: {
+      refetchInterval: 1000,
+    }
   })
 
-  const { data: reserves } = useReadContract({
+  // const { data: reserves } = useReadContract({
+  //   abi: UniswapV2PairABI,
+  //   address: pair,
+  //   args: [],
+  //   functionName: 'getReserves',
+  // })
+
+  const { data: token0 } = useReadContract({
     abi: UniswapV2PairABI,
     address: pair,
     args: [],
-    functionName: 'getReserves',
+    functionName: 'token0',
   })
+
+  const ETHIndex = token0 == wethContract?.address ? 0 : 1;
+  const USDCIndex = ETHIndex == 0 ? 1 : 0;
+
+  console.log(reserves, 'reserves')
 
   // const { data: token0 } = useReadContract({
   //   abi: UniswapV2PairABI,
@@ -76,6 +100,9 @@ const Liquidity: NextPage = () => {
     address: pair,
     args: [],
     functionName: 'totalSupply',
+    query: {
+      refetchInterval: 2000,
+    }
   })
 
   console.log(reserves, 'reserves')
@@ -136,7 +163,7 @@ const Liquidity: NextPage = () => {
         } catch (e: any) {
           console.error("⚡️ ~ file: WriteOnlyFunctionForm.tsx:handleWrite ~ error", e);
         }
-        document.getElementById('add').close();
+        document.getElementById('add')?.close();
       }
     } else {
       handleApproveUSDC();
@@ -160,7 +187,7 @@ const Liquidity: NextPage = () => {
         } catch (e: any) {
           console.error("⚡️ ~ file: WriteOnlyFunctionForm.tsx:handleWrite ~ error", e);
         }
-        document.getElementById('remove').close();
+        document.getElementById('remove')?.close();
 
       }
     } else {
@@ -190,7 +217,7 @@ const Liquidity: NextPage = () => {
                   <input type="text" className="grow" placeholder="" value={usdcAmount} onChange={(e) => setUsdcAmount(e.target.value)} />
                   <span>USDC</span>
                 </label>
-                <button className="btn w-72 btn-info" onClick={() => handleAddLiquidity()}>Supply</button>
+                <button className="btn w-72 btn-info" onClick={() => handleAddLiquidity()}>{approvedUSDC ? 'Supply' : 'Approve'}</button>
 
               </div>
 
@@ -202,13 +229,13 @@ const Liquidity: NextPage = () => {
             <div className="flex flex-col p-5 min-h-80 justify-around">
               <div className="px-5">USDC/ETH</div>
               <div className="flex flex-col p-5 justify-around max-h-64">
-                <div className="flex flex-row justify-between py-1"><span>Total Pooled Tokens</span><span>{formatEther(position)}</span></div>
-                <div className="flex flex-row justify-between py-1"><span>Pooled ETH</span><span>{formatEther((reserves as any)[0]?.toString())}</span></div>
-                <div className="flex flex-row justify-between py-1"><span>Pooled USDC</span><span>{formatUnits((reserves as any)[1]?.toString(), 6)}</span></div>
+                <div className="flex flex-row justify-between py-1"><span>Total Pooled Tokens</span><span>{parseFloat(formatEther(position)).toFixed(10)}</span></div>
+                <div className="flex flex-row justify-between py-1"><span>Pooled ETH</span><span>{formatEther((reserves as any)[ETHIndex]?.toString())}</span></div>
+                <div className="flex flex-row justify-between py-1"><span>Pooled USDC</span><span>{formatUnits((reserves as any)[USDCIndex]?.toString(), 6)}</span></div>
                 <div className="flex flex-row justify-between py-1"><span>Your Pool Share</span><span>{(parseFloat(position) / parseFloat(totalSupply as string) * 100).toFixed(4)}%</span></div>
               </div>
 
-              <button className="btn btn-error" onClick={() => document.getElementById('remove').showModal()}>Remove</button>
+              <button className="btn btn-error" onClick={() => document.getElementById('remove').showModal()}>{approvedLP ? 'Remove' : 'Approve'}</button>
               <dialog id="remove" className="modal">
                 <div className="modal-box h-96">
                   <form method="dialog">
@@ -223,10 +250,10 @@ const Liquidity: NextPage = () => {
                     </div>
                     <div className="w-full">
                       <label className="flex items-center flex-row justify-between">
-                        <span>ETH</span> <span>{formatEther(BigInt((parseInt((reserves as any)[0]) * amount / 100).toString()))}</span>
+                        <span>ETH</span> <span>{formatEther((reserves[ETHIndex] as bigint) * BigInt(amount) / BigInt(100))}</span>
                       </label>
                       <label className="flex items-center flex-row justify-between">
-                        <span>USDC</span> <span>{formatUnits(BigInt((parseInt((reserves as any)[0]) * amount / 100).toString()), 6)}</span>
+                        <span>USDC</span> <span>{formatUnits((reserves[USDCIndex] as bigint) * BigInt(amount) / BigInt(100), 6)}</span>
                       </label>
                     </div>
                     <button className="btn btn-error w-full" onClick={() => handleRemoveLiquidity()}>Remove</button>
@@ -237,7 +264,10 @@ const Liquidity: NextPage = () => {
               </dialog>
             </div>
           </>) : (<>
-            No position</>)}
+            <div className="p-5">
+              No position
+            </div>
+          </>)}
         </div>
       </div>
     </>
