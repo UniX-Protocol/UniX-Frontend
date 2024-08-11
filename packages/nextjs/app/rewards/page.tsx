@@ -24,7 +24,6 @@ type ListItem = { token: string; itemType: "Interest" | "Reward"; available: big
 
 const Rewards: NextPage = () => {
   const [list, setList] = useState<ListItem[]>([])
-  const [refresh, setRefresh] = useState(0)
 
   const writeTxn = useTransactor()
   const { address: userAddress } = useAccount();
@@ -40,62 +39,74 @@ const Rewards: NextPage = () => {
   const { data: poolInfo } = useDeployedContractInfo("AaveV3Pool")
   const { writeContractAsync } = useWriteContract()
 
-  const { data } = useScaffoldReadContract({
-    contractName: "USDC",
-    functionName: "allowance",
-    args: [userAddress, unixBankInfo?.address]
+  const {data:userUSDCInterest,isLoading:isUSDCInterestLoading,isSuccess:isUSDCInterestSuccess,isRefetching:isRefetching1} = useSimulateContract({
+    abi:uniXHelperInfo?.abi,
+    address:uniXHelperInfo?.address,
+    functionName:"getUserInterest",
+    args:[userAddress??"",usdcInfo?.address,unixBankInfo?.address],
+    query:{
+      refetchInterval:3000
+    }
   })
 
-  const { data: userUSDCInterest, isLoading: isUSDCInterestLoading, isSuccess: isUSDCInterestSuccess } = useSimulateContract({
-    abi: uniXHelperInfo?.abi,
-    address: uniXHelperInfo?.address,
-    functionName: "getUserInterest",
-    args: [userAddress ?? "", usdcInfo?.address, unixBankInfo?.address],
+  const {data:userWBTCInterest,isLoading:isWBTCInterestLoading,isSuccess:isWBTCInterestSuccess,isRefetching:isRefetching2} = useSimulateContract({
+    abi:uniXHelperInfo?.abi,
+    address:uniXHelperInfo?.address,
+    functionName:"getUserInterest",
+    args:[userAddress??"",wbtcInfo?.address,unixBankInfo?.address],
+    query:{
+      refetchInterval:3000
+    }
   })
 
-  const { data: userWBTCInterest, isLoading: isWBTCInterestLoading, isSuccess: isWBTCInterestSuccess } = useSimulateContract({
-    abi: uniXHelperInfo?.abi,
-    address: uniXHelperInfo?.address,
-    functionName: "getUserInterest",
-    args: [userAddress ?? "", wbtcInfo?.address, unixBankInfo?.address],
+  const {data:userWETHInterest,isLoading:isETHInterestLoading,isSuccess:isETHInterestSuccess,isRefetching:isRefetching3} = useSimulateContract({
+    abi:uniXHelperInfo?.abi,
+    address:uniXHelperInfo?.address,
+    functionName:"getUserInterest",
+    args:[userAddress??"",WETHInfo?.address,unixBankInfo?.address],
+    query:{
+      refetchInterval:3000
+    }
   })
 
-  const { data: userWETHInterest, isLoading: isETHInterestLoading, isSuccess: isETHInterestSuccess, error } = useSimulateContract({
-    abi: uniXHelperInfo?.abi,
-    address: uniXHelperInfo?.address,
-    functionName: "getUserInterest",
-    args: [userAddress ?? "", WETHInfo?.address, unixBankInfo?.address],
+  const {data:userUSDCRewards,isLoading:isUSDCRewardLoading,isSuccess:isUSDCRewardSuccess,isRefetching:isRefetching4} = useSimulateContract({
+    abi:uniXHelperInfo?.abi,
+    address:uniXHelperInfo?.address,
+    functionName:"getUserRewards",
+    args:[userAddress,usdcInfo?.address,rewardControllerInfo?.address,poolInfo?.address,unixBankInfo?.address],
+    query:{
+      refetchInterval:3000
+    }
   })
 
-  const { data: userUSDCRewards, isLoading: isUSDCRewardLoading, isSuccess: isUSDCRewardSuccess } = useSimulateContract({
-    abi: uniXHelperInfo?.abi,
-    address: uniXHelperInfo?.address,
-    functionName: "getUserRewards",
-    args: [userAddress, usdcInfo?.address, rewardControllerInfo?.address, poolInfo?.address, unixBankInfo?.address],
+  const {data:userWBTCRewards,isLoading:isWBTCRewardLoading,isSuccess:isWBTCRewardSuccess,isRefetching:isRefetching5} = useSimulateContract({
+    abi:uniXHelperInfo?.abi,
+    address:uniXHelperInfo?.address,
+    functionName:"getUserRewards",
+    args:[userAddress,wbtcInfo?.address,rewardControllerInfo?.address,poolInfo?.address,unixBankInfo?.address],
+    query:{
+      refetchInterval:3000
+    }
   })
 
-  const { data: userWBTCRewards, isLoading: isWBTCRewardLoading, isSuccess: isWBTCRewardSuccess } = useSimulateContract({
-    abi: uniXHelperInfo?.abi,
-    address: uniXHelperInfo?.address,
-    functionName: "getUserRewards",
-    args: [userAddress, wbtcInfo?.address, rewardControllerInfo?.address, poolInfo?.address, unixBankInfo?.address],
+  const {data:userETHRewards,isLoading:isETHRewardLoading,isSuccess:isETHRewardSuccess,isRefetching:isRefetching6} = useSimulateContract({
+    abi:uniXHelperInfo?.abi,
+    address:uniXHelperInfo?.address,
+    functionName:"getUserRewards",
+    args:[userAddress,aaveWETHInfo?.address,rewardControllerInfo?.address,poolInfo?.address,unixBankInfo?.address],
+    query:{
+      refetchInterval:3000
+    }
   })
 
-  const { data: userETHRewards, isLoading: isETHRewardLoading, isSuccess: isETHRewardSuccess } = useSimulateContract({
-    abi: uniXHelperInfo?.abi,
-    address: uniXHelperInfo?.address,
-    functionName: "getUserRewards",
-    args: [userAddress, aaveWETHInfo?.address, rewardControllerInfo?.address, poolInfo?.address, unixBankInfo?.address],
-  })
-
-  useEffect(() => {
-    if (isUSDCInterestSuccess && isWBTCInterestSuccess && isETHInterestSuccess && isUSDCRewardSuccess && isWBTCRewardSuccess && isETHRewardSuccess) {
-      const data: ListItem[] = []
-      data.push({ token: usdcInfo?.address ?? "", itemType: "Interest", available: userUSDCInterest?.result })
-      data.push({ token: wbtcInfo?.address ?? "", itemType: "Interest", available: userWBTCInterest?.result });
-      data.push({ token: WETHInfo?.address ?? "", itemType: "Interest", available: userWETHInterest?.result });
-      (userUSDCRewards.result[0] as string[]).map((tokenAddress, i) => {
-        data.push({ token: tokenAddress, itemType: "Reward", available: userUSDCRewards.result[1][i] })
+  useEffect(()=>{
+    if(isUSDCInterestSuccess&&isWBTCInterestSuccess&&isETHInterestSuccess&&isUSDCRewardSuccess&&isWBTCRewardSuccess&&isETHRewardSuccess){
+      const data = new Array<ListItem>()
+      data.push({token:usdcInfo?.address??"",itemType:"Interest",available:userUSDCInterest?.result})
+      data.push({token:wbtcInfo?.address??"",itemType:"Interest",available:userWBTCInterest?.result});
+      data.push({token:WETHInfo?.address??"",itemType:"Interest",available:userWETHInterest?.result});
+      (userUSDCRewards.result[0] as string[]).map((tokenAddress,i)=>{
+        data.push({token:tokenAddress,itemType:"Reward",available:userUSDCRewards.result[1][i]})
       });
 
       (userWBTCRewards.result[0] as string[]).map((tokenAddress, i) => {
@@ -123,11 +134,18 @@ const Rewards: NextPage = () => {
           data.push({ token: tokenAddress, itemType: "Reward", available: userETHRewards.result[1][i] })
         }
       });
-      setList(data)
+      setList([...data])
     }
+    
+  },[isUSDCInterestLoading,isWBTCInterestLoading,isETHInterestLoading,isUSDCRewardLoading,isWBTCRewardLoading,isETHRewardLoading,isRefetching1,isRefetching2,isRefetching3,isRefetching4,isRefetching5,isRefetching6])
 
-  }, [isUSDCInterestLoading, isWBTCInterestLoading, isETHInterestLoading, isUSDCRewardLoading, isWBTCRewardLoading, isETHRewardLoading])
-
+  // useEffect(()=>{
+  //   const intervalId = setInterval(()=>{
+  //     setRefresh(refresh+1)
+  //     console.log("=========",refresh)
+  //   }, 3000)
+  //   return () => clearInterval(intervalId)
+  // },[])
 
 
   const handleClaim = useCallback(async (token: string, type: "Interest" | "Reward") => {
@@ -138,38 +156,43 @@ const Rewards: NextPage = () => {
         functionName: "claimInterest",
         args: [userAddress ?? "", token]
       }))
-      setRefresh(refresh + 1)
-    } else {
-      await writeTxn(() => writeContractAsync({
-        abi: unixBankInfo?.abi ?? [],
-        address: unixBankInfo?.address ?? "",
-        functionName: "claimReward",
-        args: [userAddress ?? "", token]
+      // await writeContractAsync({
+      //   abi:unixBankInfo?.abi??[],
+      //   address:unixBankInfo?.address??"",
+      //   functionName:"claimInterest",
+      //   args:[userAddress??"",token]
+      // })
+    }else{
+      await writeTxn(()=>writeContractAsync({
+        abi:unixBankInfo?.abi??[],
+        address:unixBankInfo?.address??"",
+        functionName:"claimReward",
+        args:[userAddress??"",token]
       }))
-      setRefresh(refresh + 1)
+
+      // await writeContractAsync({
+      //   abi:unixBankInfo?.abi??[],
+      //   address:unixBankInfo?.address??"",
+      //   functionName:"claimReward",
+      //   args:[userAddress??"",token]
+      // })
+      
     }
   }, [unixBankInfo])
 
 
   return (
-    <div className="flex items-center flex-col flex-grow pt-10">
-      <div className="flex flex-row items-center justify-between my-5">
-        <div className="card bg-base-100 w-full">
-          <div className="flex flex-col items-center h-auto  my-5">
-            <div className="flex flex-row h-auto pt-4 pl-12 pr-12 w-full">
-              <span className="w-40">Symbol</span>
-              <span className="flex-1">TokenAddress</span>
-              <span className="flex-1">Balance</span>
-              <span className="flex-1">Available</span>
-              <span>Option</span>
-            </div>
-            {list.map((data, i) => {
-
-              return <ItemView data={data} key={i} handleClaim={() => handleClaim(data.token, data.itemType)} abi={WETHInfo?.abi} user={userAddress ?? ""} />
-            })}
-          </div>
-        </div>
+    <div className="flex flex-col items-center h-auto">
+      <div className="flex w-screen h-auto pt-4 pl-12 pr-12">
+        <span className="w-40">Symbol</span>
+        <span className="flex-1">TokenAddress</span>
+        <span className="flex-1">Balance</span>
+        <span className="flex-1">Available</span>
+        <span>Option</span>
       </div>
+      {list.map((data,i)=>{
+      return <ItemView data={data} key={i} handleClaim={()=>handleClaim(data.token,data.itemType)} abi={WETHInfo?.abi} user={userAddress??""}/>
+      })}
     </div>
 
 
@@ -208,7 +231,7 @@ const ItemView = ({ data, handleClaim, abi, user }: { data: ListItem, handleClai
       const ava = BigNumber(data.available.toString()).div(BigNumber(10 ** d))
       setAvailable(formatValue(ava.toString(), 18))
     }
-  }, [isBalanceLoading, isDecimalsLoading])
+  },[isBalanceLoading,isDecimalsLoading,data])
 
   return <div className="flex w-screen h-auto pt-4 pl-12 pr-8">
     <span className="w-40">{symbol as string}</span>
