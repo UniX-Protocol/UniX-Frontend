@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import deployedContracts from "../../contracts/deployedContracts";
 import externalContracts from "../../contracts/externalContracts";
 import {
@@ -14,90 +14,144 @@ import {
 import { contracts } from "../../utils/scaffold-eth/contract";
 import { getAllContracts } from "../../utils/scaffold-eth/contractsData";
 import { NextPage } from "next";
-import { useAccount, useSimulateContract } from "wagmi";
+import { useAccount, useSimulateContract, useToken, useWriteContract } from "wagmi";
+import { Address, Balance } from "../../components/scaffold-eth";
+
+type ListItem  = {token:string; itemType:"Interest"|"Reward"; available:bigint}
 
 const Rewards: NextPage = () => {
-  // useSimulateContract({
-  //   abi:
-  // })
+  const [list, setList] = useState<ListItem[]>([])
 
-  const usdc = useScaffoldWriteContract("USDC");
-  const { targetNetwork } = useTargetNetwork();
-  // const unixHelperContract = getAllContracts()["UnixHelper"]
-  const { address } = useAccount();
+  const { address:userAddress } = useAccount();
   const {data:uniXHelperInfo} = useDeployedContractInfo("UniXHelper")
   const {data:usdcInfo} = useDeployedContractInfo("USDC")
   const {data:unixBankInfo} = useDeployedContractInfo("UniXBank")
+
+  const {data:wbtcInfo} = useDeployedContractInfo("WBTC")
+  const {data:aaveWETHInfo} = useDeployedContractInfo("AAVEWETH")
+  const {data:WETHInfo} = useDeployedContractInfo("WETH9")
   const {data:routerInfo} = useDeployedContractInfo("UniswapV2Router02")
-  const {data:userInterest,isLoading,error,isSuccess} = useSimulateContract({
+  const {data:rewardControllerInfo} = useDeployedContractInfo("AaveV3RewardController")
+  const {data:poolInfo} = useDeployedContractInfo("AaveV3Pool")
+  const {writeContractAsync} = useWriteContract()
+
+  const {data:userUSDCInterest,isLoading:isUSDCInterestLoading,isSuccess:isUSDCInterestSuccess} = useSimulateContract({
     abi:uniXHelperInfo?.abi,
     address:uniXHelperInfo?.address,
     functionName:"getUserInterest",
-    args:[address??"",usdcInfo?.address,unixBankInfo?.address]
+    args:[userAddress??"",usdcInfo?.address,unixBankInfo?.address]
   })
 
+  const {data:userWBTCInterest,isLoading:isWBTCInterestLoading,isSuccess:isWBTCInterestSuccess} = useSimulateContract({
+    abi:uniXHelperInfo?.abi,
+    address:uniXHelperInfo?.address,
+    functionName:"getUserInterest",
+    args:[userAddress??"",wbtcInfo?.address,unixBankInfo?.address]
+  })
 
-  const uniswapV2Router02 = useScaffoldWriteContract("UniswapV2Router02");
-  const { data } = useScaffoldReadContract({
-    contractName: "USDC",
-    functionName: "balanceOf",
-    args: [address],
-  });
+  const {data:userWETHInterest,isLoading:isETHInterestLoading,isSuccess:isETHInterestSuccess,error} = useSimulateContract({
+    abi:uniXHelperInfo?.abi,
+    address:uniXHelperInfo?.address,
+    functionName:"getUserInterest",
+    args:[userAddress??"",WETHInfo?.address,unixBankInfo?.address]
+  })
 
-  const { data: aaa } = useScaffoldReadContract({
-    contractName: "USDC",
-    functionName: "allowance",
-    args: [address, routerInfo?.address],
-  });
+  const {data:userUSDCRewards,isLoading:isUSDCRewardLoading,isSuccess:isUSDCRewardSuccess} = useSimulateContract({
+    abi:uniXHelperInfo?.abi,
+    address:uniXHelperInfo?.address,
+    functionName:"getUserRewards",
+    args:[userAddress,usdcInfo?.address,rewardControllerInfo?.address,poolInfo?.address,unixBankInfo?.address]
+  })
 
-  useEffect(() => {
-    console.log("======", data?.toString());
-  }, [data]);
+  const {data:userWBTCRewards,isLoading:isWBTCRewardLoading,isSuccess:isWBTCRewardSuccess} = useSimulateContract({
+    abi:uniXHelperInfo?.abi,
+    address:uniXHelperInfo?.address,
+    functionName:"getUserRewards",
+    args:[userAddress,wbtcInfo?.address,rewardControllerInfo?.address,poolInfo?.address,unixBankInfo?.address]
+  })
 
-  useEffect(() => {
-    console.log("xxxxxx", userInterest);
-  }, [userInterest]);
+  const {data:userETHRewards,isLoading:isETHRewardLoading,isSuccess:isETHRewardSuccess} = useSimulateContract({
+    abi:uniXHelperInfo?.abi,
+    address:uniXHelperInfo?.address,
+    functionName:"getUserRewards",
+    args:[userAddress,aaveWETHInfo?.address,rewardControllerInfo?.address,poolInfo?.address,unixBankInfo?.address]
+  })
 
-  useEffect(() => {
-    console.log("isLoadingxxxxxx", error?.message);
-  }, [isLoading]);
+  useEffect(()=>{
+    if(isUSDCInterestSuccess&&isWBTCInterestSuccess&&isETHInterestSuccess&&isUSDCRewardSuccess&&isWBTCRewardSuccess&&isETHRewardSuccess){
+      const data:ListItem[] = []
+      data.push({token:usdcInfo?.address??"",itemType:"Interest",available:userUSDCInterest?.result})
+      data.push({token:wbtcInfo?.address??"",itemType:"Interest",available:userWBTCInterest?.result});
+      data.push({token:WETHInfo?.address??"",itemType:"Interest",available:userWETHInterest?.result});
 
-  // const [balance,setBalance] = useState(0)
+
+      (userUSDCRewards.result[0] as string[]).map((tokenAddress,i)=>{
+        data.push({token:tokenAddress,itemType:"Reward",available:userUSDCRewards.result[1][i]})
+      });
+
+      (userWBTCRewards.result[0] as string[]).map((tokenAddress,i)=>{
+        let isExist = false
+        data.forEach((item)=>{
+          if(item.token.toLowerCase() === tokenAddress.toLowerCase() && item.itemType === "Reward"){
+            isExist = true
+            return
+          }
+        })
+        if(!isExist){
+          data.push({token:tokenAddress,itemType:"Reward",available:userWBTCRewards.result[1][i]})
+        }
+      });
+
+      (userETHRewards.result[0] as string[]).map((tokenAddress,i)=>{
+        let isExist = false
+        data.forEach((item)=>{
+          if(item.token.toLowerCase() === tokenAddress.toLowerCase() && item.itemType === "Reward"){
+            isExist = true
+            return
+          }
+        })
+        if(!isExist){
+          data.push({token:tokenAddress,itemType:"Reward",available:userETHRewards.result[1][i]})
+        }
+      });
+      setList(data)
+    }
+    
+  },[isUSDCInterestLoading,isWBTCInterestLoading,isETHInterestLoading,isUSDCRewardLoading,isWBTCRewardLoading,isETHRewardLoading])
+
+  const handleClaim = useCallback(async (token:string,type:"Interest"|"Reward")=>{
+    if(type === "Interest"){
+      await writeContractAsync({
+        abi:unixBankInfo?.abi??[],
+        address:unixBankInfo?.address??"",
+        functionName:"claimInterest",
+        args:[userAddress??"",token]
+      })
+    }else{
+      await writeContractAsync({
+        abi:unixBankInfo?.abi??[],
+        address:unixBankInfo?.address??"",
+        functionName:"claimReward",
+        args:[userAddress??"",token]
+      })
+    }
+  },[unixBankInfo])
 
   return (
-    <div className="flex items-center justify-center h-screen">
-      <button
-        onClick={async () => {
-          await usdc.writeContractAsync({
-            functionName: "approve",
-            args: [routerInfo?.address, BigInt("1000000000000000000")],
-          });
-        }}
-      >
-        xxx{userInterest?.result}xxx
-        ====={aaa?.toString()}===== approve
-      </button>
-
-      <button
-        onClick={async () => {
-          await uniswapV2Router02.writeContractAsync({
-            functionName: "addLiquidityETH",
-            args: [
-              usdcInfo?.address,
-              BigInt(100000000000),
-              BigInt(0),
-              BigInt(0),
-              address,
-              BigInt(Math.floor(Date.now() / 1000 + 86400 * 2)),
-            ],
-            value: BigInt("100000000000000000"),
-          });
-        }}
-      >
-        ===
-        {data?.toString()}
-        === AddLiquidityETH
-      </button>
+    <div className="flex flex-col items-center justify-center h-screen">
+      {list.map((data,i)=>{
+        return <div className="flex w-screen h-auto pt-4 pb4" key={i}>
+        <span className="flex-1">{data.token}</span>
+        <span className="flex-1">{data.available.toString()}</span>
+        <button className=" w-40" onClick={()=>{
+          try{
+            handleClaim(data.token,data.itemType)
+          }catch(error){
+            console.error("handleClaim error:", error);
+          }
+        }}>claim</button>
+      </div>
+      })}
     </div>
   );
 };

@@ -641,6 +641,18 @@ const externalContracts = {
         },
       ],
     },
+    AAVEWETH:{
+      address:"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      abi:[]
+    },
+    AaveV3RewardController:{
+      address:"0x8164Cc65827dcFe994AB23944CBC90e0aa80bFcb",
+      abi:[]
+    },
+    AaveV3Pool:{
+      address:"0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
+      abi:[]
+    }
   },
 } as const;
 

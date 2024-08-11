@@ -212,15 +212,17 @@ contract UniXBank {
 		if(supportEarnTokens[token]){
 			_updateShare(user, token, 0);
 			PoolInfo storage poolInfo = pools[token];
-			address[] memory assets = new address[](1);
-			assets[0] = poolInfo.aToken;
-			IAaveV3RewardController arc = IAaveV3RewardController(aaveRewardController);
-			(address[] memory rewardsList, uint256[] memory unclaimedAmounts) = arc.getAllUserRewards(assets, address(this));
-			for(uint i = 0; i < rewardsList.length; i++){
-				uint rewardAmount = (poolInfo.accRewards[rewardsList[i]] + unclaimedAmounts[i]) * poolInfo.userInfo[user].share / poolInfo.share - poolInfo.userInfo[user].accRewards[rewardsList[i]];
-				arc.claimRewards(assets, rewardAmount, user, rewardsList[i]);
-				poolInfo.accRewards[rewardsList[i]] += rewardAmount;
-				poolInfo.userInfo[user].accRewards[rewardsList[i]] += rewardAmount;
+			if(poolInfo.share>0){
+				address[] memory assets = new address[](1);
+				assets[0] = poolInfo.aToken;
+				IAaveV3RewardController arc = IAaveV3RewardController(aaveRewardController);
+				(address[] memory rewardsList, uint256[] memory unclaimedAmounts) = arc.getAllUserRewards(assets, address(this));
+				for(uint i = 0; i < rewardsList.length; i++){
+					uint rewardAmount = (poolInfo.accRewards[rewardsList[i]] + unclaimedAmounts[i]) * poolInfo.userInfo[user].share / poolInfo.share - poolInfo.userInfo[user].accRewards[rewardsList[i]];
+					arc.claimRewards(assets, rewardAmount, user, rewardsList[i]);
+					poolInfo.accRewards[rewardsList[i]] += rewardAmount;
+					poolInfo.userInfo[user].accRewards[rewardsList[i]] += rewardAmount;
+				}
 			}
 		}
 	}
