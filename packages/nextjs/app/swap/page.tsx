@@ -12,8 +12,8 @@ import { parseEther, parseUnits } from "viem";
 
 const Swap: NextPage = () => {
   const { address: connectedAddress } = useAccount();
-  const [sellCoin, setSellCoin] = useState<string>("Select coin")
-  const [buyCoin, setBuyCoin] = useState<string>("Select coin")
+  const [sellCoin, setSellCoin] = useState<string>("ETH")
+  const [buyCoin, setBuyCoin] = useState<string>("USDC")
   const [sellAmount, setSellAmount] = useState("")
   const [buyAmount, setBuyAmount] = useState("")
   const { data: wethContract } = useDeployedContractInfo("WETH9");
@@ -39,7 +39,7 @@ const Swap: NextPage = () => {
     args: [],
     functionName: 'getReserves',
   })
-  console.log("reserve result", reserves)
+
   const { data: token0 } = useReadContract({
     abi: UniswapV2PairABI,
     address: pair,
@@ -49,22 +49,6 @@ const Swap: NextPage = () => {
 
   const ETHIndex = token0 === wethContract?.address ? 0 : 1;
   const USDCIndex = ETHIndex === 0 ? 1 : 0;
-
-  const { data: ethbalance } = useReadContract({
-    abi: UniswapV2PairABI,
-    functionName: "balanceOf",
-    address: wethContract?.address,
-    args: [connectedAddress]
-  })
-
-  const { data: usdcbalance } = useReadContract({
-    abi: UniswapV2PairABI,
-    functionName: "balanceOf",
-    address: externalContracts[202407311228].USDC.address,
-    args: [connectedAddress]
-  })
-  console.log("eth balance", ethbalance)
-  console.log("usdc balance", usdcbalance)
 
   function getBuyAmount(amount: string, coin: string) {
     if (amount === undefined || coin === undefined) { return "" }
@@ -90,7 +74,7 @@ const Swap: NextPage = () => {
       try {
         await usdcContract({
           functionName: "approve",
-          args: [unixBankInfo!.address, BigInt(9999999)],
+          args: [unixBankInfo!.address, BigInt(Number.MAX_SAFE_INTEGER)],
         });
       } catch (e) {
         console.error("Error approve USDC:", e);
@@ -106,7 +90,7 @@ const Swap: NextPage = () => {
             address: routerContract!.address,
             functionName: 'swapExactETHForTokens',
             abi: routerContract!.abi,
-            args: [BigInt(0), [wethContract!.address, externalContracts[202407311228].USDC.address], connectedAddress, BigInt(Math.floor(Date.now() / 1000) + 36000000)],
+            args: [BigInt(0), [wethContract!.address, externalContracts[202407311228].USDC.address], connectedAddress??"", BigInt(Math.floor(Date.now() / 1000) + 36000000)],
             value: parseEther(sellAmount)
           })
           await writeTxn(makeWriteWithParams);
@@ -114,8 +98,8 @@ const Swap: NextPage = () => {
         console.error(e)
       }
     } else {
-      if (approvedUSDC && BigInt(sellAmount) > approvedUSDC ) {
-        handleApproveUSDC
+      if (approvedUSDC !== undefined && BigInt(sellAmount) > approvedUSDC) {
+        await handleApproveUSDC()
       }
       try {
         const makeWriteWithParams = () =>
@@ -123,7 +107,7 @@ const Swap: NextPage = () => {
             address: routerContract!.address,
             functionName: 'swapExactTokensForETH',
             abi: routerContract!.abi,
-            args: [parseUnits(sellAmount, 6), BigInt(0), [externalContracts[202407311228].USDC.address, wethContract!.address], connectedAddress!, BigInt(Math.floor(Date.now() / 1000) + 36000000)]
+            args: [parseUnits(sellAmount, 6), BigInt(0), [externalContracts[202407311228].USDC.address, wethContract!.address], connectedAddress??"", BigInt(Math.floor(Date.now() / 1000) + 36000000)]
           })
           await writeTxn(makeWriteWithParams);
       } catch (e: any) {
@@ -142,7 +126,9 @@ const Swap: NextPage = () => {
               <input type="number" className="grow" placeholder="Sell Amount" value={sellAmount} onChange={(e) => setSellAmount(e.target.value)} />
               <span>
                 <div className="flex items-center pl-5">
-                  <button className="btn btn-active btn-sm" onClick={() => document.getElementById('select_coin').showModal()}>{sellCoin}</button>
+                  <button className="btn btn-active btn-sm" onClick={
+                    // @ts-ignore
+                    () => document.getElementById('select_coin')?.showModal()}>{sellCoin}</button>
                   <dialog id="select_coin" className="modal">
                     <div className="modal-box">
                       <form method="dialog">
