@@ -48,42 +48,60 @@ const Rewards: NextPage = () => {
     abi:uniXHelperInfo?.abi,
     address:uniXHelperInfo?.address,
     functionName:"getUserInterest",
-    args:[userAddress??"",usdcInfo?.address,unixBankInfo?.address]
+    args:[userAddress??"",usdcInfo?.address,unixBankInfo?.address],
+    query:{
+      refetchInterval:3000
+    }
   })
 
   const {data:userWBTCInterest,isLoading:isWBTCInterestLoading,isSuccess:isWBTCInterestSuccess} = useSimulateContract({
     abi:uniXHelperInfo?.abi,
     address:uniXHelperInfo?.address,
     functionName:"getUserInterest",
-    args:[userAddress??"",wbtcInfo?.address,unixBankInfo?.address]
+    args:[userAddress??"",wbtcInfo?.address,unixBankInfo?.address],
+    query:{
+      refetchInterval:3000
+    }
   })
 
   const {data:userWETHInterest,isLoading:isETHInterestLoading,isSuccess:isETHInterestSuccess,error} = useSimulateContract({
     abi:uniXHelperInfo?.abi,
     address:uniXHelperInfo?.address,
     functionName:"getUserInterest",
-    args:[userAddress??"",WETHInfo?.address,unixBankInfo?.address]
+    args:[userAddress??"",WETHInfo?.address,unixBankInfo?.address],
+    query:{
+      refetchInterval:3000
+    }
   })
 
   const {data:userUSDCRewards,isLoading:isUSDCRewardLoading,isSuccess:isUSDCRewardSuccess} = useSimulateContract({
     abi:uniXHelperInfo?.abi,
     address:uniXHelperInfo?.address,
     functionName:"getUserRewards",
-    args:[userAddress,usdcInfo?.address,rewardControllerInfo?.address,poolInfo?.address,unixBankInfo?.address]
+    args:[userAddress,usdcInfo?.address,rewardControllerInfo?.address,poolInfo?.address,unixBankInfo?.address],
+    query:{
+      refetchInterval:3000
+    }
   })
 
   const {data:userWBTCRewards,isLoading:isWBTCRewardLoading,isSuccess:isWBTCRewardSuccess} = useSimulateContract({
     abi:uniXHelperInfo?.abi,
     address:uniXHelperInfo?.address,
     functionName:"getUserRewards",
-    args:[userAddress,wbtcInfo?.address,rewardControllerInfo?.address,poolInfo?.address,unixBankInfo?.address]
+    args:[userAddress,wbtcInfo?.address,rewardControllerInfo?.address,poolInfo?.address,unixBankInfo?.address],
+    query:{
+      refetchInterval:3000
+    }
   })
 
   const {data:userETHRewards,isLoading:isETHRewardLoading,isSuccess:isETHRewardSuccess} = useSimulateContract({
     abi:uniXHelperInfo?.abi,
     address:uniXHelperInfo?.address,
     functionName:"getUserRewards",
-    args:[userAddress,aaveWETHInfo?.address,rewardControllerInfo?.address,poolInfo?.address,unixBankInfo?.address]
+    args:[userAddress,aaveWETHInfo?.address,rewardControllerInfo?.address,poolInfo?.address,unixBankInfo?.address],
+    query:{
+      refetchInterval:3000
+    }
   })
 
   useEffect(()=>{
