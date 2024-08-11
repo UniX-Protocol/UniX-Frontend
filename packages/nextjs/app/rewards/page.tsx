@@ -138,7 +138,7 @@ const Rewards: NextPage = () => {
   },[unixBankInfo])
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
+    <div className="flex flex-col items-center h-screen ml-20 mr-20 w-auto">
       {list.map((data,i)=>{
         return <div className="flex w-screen h-auto pt-4 pb4" key={i}>
         <span className="flex-1">{data.token}</span>
